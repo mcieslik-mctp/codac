@@ -20,8 +20,8 @@ config <- function() {
                             default=FALSE,
                             help="keep all breakpoints"),
       optparse::make_option(c("-g", "--genome"), type="character",
-                            default="grch38",
-                            help="set genome version: grch38"),
+                            default="hg38",
+                            help="set genome version: hg38"),
       optparse::make_option(c("-o", "--opts"), type="character",
                             default=NA_character_,
                             help="additional options")

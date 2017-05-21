@@ -5,7 +5,7 @@
 #' @importFrom parallel mclapply
 #' @importFrom stringr str_sub str_split str_match str_replace
 #' @importFrom igraph graph.data.frame V clusters
-#' @importFrom GenomeInfoDb keepSeqlevels seqlevels
+#' @importFrom GenomeInfoDb keepSeqlevels seqlevels keepStandardChromosomes Seqinfo seqlengths
 #' @importFrom IRanges IRanges %over%
 #' @importFrom ShortRead dustyScore
 #' @importFrom rtracklayer import import.bw

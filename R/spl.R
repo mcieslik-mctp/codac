@@ -5,7 +5,8 @@
     sj <- GRanges(seqnames=tmp$V1, IRanges(start=tmp$V2, end=tmp$V3),
                   strand=ifelse(tmp$V4==1,"+",ifelse(tmp$V4==2, "-", "*")),
                   nfrag=tmp$V7, motif=(tmp$V5 %in% c(1, 2)))
-    sj <- suppressWarnings(keepSeqlevels(sj, ann$par$chr))
+    seqlevels(sj, pruning.mode="coarse") <- seqlevels(ann$seqi)
+    seqinfo(sj) <- ann$seqi
     return(sj)
 }
 

@@ -110,13 +110,13 @@
     jnc[seq[tag=="HI:i:2"], seq.3:=seq]
     rm(seq)
     jnc <- jnc[!is.na(seq.5) & !is.na(seq.3)]
-    jnc <- jnc[chr.5 %in% ann$par$chr & chr.3 %in% ann$par$chr]
+    jnc <- jnc[chr.5 %in% seqlevels(ann$seqi) & chr.3 %in% seqlevels(ann$seqi)]
     jnc.5 <- GRanges(jnc$chr.5, IRanges(jnc$pos.5, width=1),jnc$str.5)
     jnc.3 <- GRanges(jnc$chr.3, IRanges(jnc$pos.3, width=1),jnc$str.3)
     jnc.ok <- (jnc.5 %over% ann$loci) & (jnc.3 %over% ann$loci)
     jnc <- jnc[jnc.ok]
-    jnc[, ":="(chr.5=factor(chr.5, levels=ann$par$chr, ordered=TRUE),
-               chr.3=factor(chr.3, levels=ann$par$chr, ordered=TRUE),
+    jnc[, ":="(chr.5=factor(chr.5, levels=seqlevels(ann$seqi), ordered=TRUE),
+               chr.3=factor(chr.3, levels=seqlevels(ann$seqi), ordered=TRUE),
                str.5=factor(str.5, levels=c("+", "-"), ordered=TRUE),
                str.3=factor(str.3, levels=c("+", "-"), ordered=TRUE)
                )]

@@ -36,7 +36,9 @@ svSigPlot <- function(sv.sig) {
 #' @export
 svChainCircos <- function(sv.rep, ann) {
     circlize::circos.clear()
-    circlize::circos.initializeWithIdeogram(system.file(package="codac", "extdata", "grch38.cyt"), chromosome.index=ann$par$chr)
+    cyt <- system.file(package="codac", "extdata", "hg38.cyt")
+    chr <- seqnames(ann$seqi)
+    circlize::circos.initializeWithIdeogram(cyt, chromosome.index=chr)
     ## select unique breakpoints
     sv.rep.unq <- sv.rep[!duplicated(sv.rep[,eval(CHM.KEY),with=FALSE])]
     sv.rep.unq[, sv.chain.n:=.N, by=sv.chain]

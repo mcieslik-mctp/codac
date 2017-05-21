@@ -15,7 +15,7 @@ makeDirectory <- function(dir.fn) {
 }
 
 #' @export
-makeParams <- function(gtf.fn, genome="grch38", config.file="built-in", preset="longread.balanced",
+makeParams <- function(gtf.fn, genome="hg38", config.file="built-in", preset="longread.balanced",
                        stranded=TRUE, lib.type="poly", only.spn.bpt=TRUE, only.hx.bpt=TRUE, opts=list()) {
     ## presets
     if (config.file=="built-in") {
@@ -31,29 +31,24 @@ makeParams <- function(gtf.fn, genome="grch38", config.file="built-in", preset="
     pres$read.length <- str_split(preset, "\\.")[[1]][1]
     ## genome parameters
     par38 <- list(
-      gme = "grch38",
-      chr = c("chr1", "chr2", "chr3", "chr4", "chr5", "chr6", "chr7", "chr8", "chr9", "chr10", "chr11", "chr12", "chr13",
-              "chr14", "chr15", "chr16", "chr17", "chr18", "chr19", "chr20", "chr21", "chr22", "chrX", "chrY", "chrM"),
-      chr.len = c(248956422L, 242193529L, 198295559L, 190214555L, 181538259L, 170805979L, 159345973L, 145138636L, 138394717L,
-                  133797422L, 135086622L, 133275309L, 114364328L, 107043718L, 101991189L, 90338345L, 83257441L, 80373285L,
-                  58617616L, 64444167L, 46709983L, 50818468L, 156040895L, 57227415L, 16569L),
+      gme = "hg38",
       gtf.fn = gtf.fn,
       cut.fn = system.file("extdata", sprintf("qc-cutoffs-%s.conf", pres$lib.type), package="codac"),
-      goi.fn = system.file("extdata", "grch38.genes-of-interest.txt", package="codac"),
-      loi.fn = system.file("extdata", "grch38.loci-of-interest.txt", package="codac"),
-      gtb.fn = system.file("extdata", "grch38.genes-to-blacklist.txt", package="codac"),
-      art.fn = system.file("extdata", sprintf("grch38.artifacts-%s.csv.gz", pres$read.length), package="codac"),
-      rep.fn = system.file("extdata", "grch38.rm.bed.gz", package="codac"),
-      ret.fn = system.file("extdata", "grch38.retro.bed.gz", package="codac"),
-      cyt.fn = system.file("extdata", "grch38.cyt", package="codac"),
-      seg.fn = system.file("extdata", "grch38.segdup.gz", package="codac"),
-      alt.fn = system.file("extdata", "grch38.scaffold.placement.txt", package="codac"),
-      sv.fn  = system.file("extdata", "grch38.sv.1000g.v2.vcf.gz", package="codac"),
-      low.fn = system.file("extdata", "grch38.dust50.bed.gz", package="codac"),
-      igx.fn = system.file("extdata", "grch38.igx.bed", package="codac"),
-      sno.fn = system.file("extdata", "grch38.sno.gff.gz", package="codac")
+      goi.fn = system.file("extdata", "hg38.genes-of-interest.txt", package="codac"),
+      loi.fn = system.file("extdata", "hg38.loci-of-interest.txt", package="codac"),
+      gtb.fn = system.file("extdata", "hg38.genes-to-blacklist.txt", package="codac"),
+      art.fn = system.file("extdata", sprintf("hg38.artifacts-%s.csv.gz", pres$read.length), package="codac"),
+      rep.fn = system.file("extdata", "hg38.rm.bed.gz", package="codac"),
+      ret.fn = system.file("extdata", "hg38.retro.bed.gz", package="codac"),
+      cyt.fn = system.file("extdata", "hg38.cyt", package="codac"),
+      seg.fn = system.file("extdata", "hg38.segdup.gz", package="codac"),
+      alt.fn = system.file("extdata", "hg38.scaffold.placement.txt", package="codac"),
+      sv.fn  = system.file("extdata", "hg38.sv.1000g.v2.vcf.gz", package="codac"),
+      low.fn = system.file("extdata", "hg38.dust50.bed.gz", package="codac"),
+      igx.fn = system.file("extdata", "hg38.igx.bed", package="codac"),
+      sno.fn = system.file("extdata", "hg38.sno.gff.gz", package="codac")
     )
-    if (tolower(genome) == "grch38") {
+    if (tolower(genome) == "hg38") {
         par <- par38
     }
     par <- c(par, pres)

@@ -139,7 +139,7 @@
     rnu.3 <- suppressWarnings(bpt.3 %over% rnu)
     
     ## ChrM
-    chrm <- keepSeqlevels(ann$loci, "chrM")
+    chrm <- ann$loci[seqnames(ann$loci)=="chrM"]
     chrm.5 <- suppressWarnings(bpt.5 %over% chrm)
     chrm.3 <- suppressWarnings(bpt.3 %over% chrm)
 

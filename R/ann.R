@@ -1,9 +1,8 @@
-.makeFeatures <- function(par) {
+.makeFeatures <- function(par, seqi) {
     txdb <- suppressWarnings(suppressMessages(makeTxDbFromGFF(par$gtf.fn)))
-    txdb <- keepSeqlevels(txdb, par$chr)
-    gme <- GRanges(par$chr, IRanges(start=1, end=par$chr.len), strand="*")
-    names(gme) <- par$chr
-    gme <- keepSeqlevels(gme, par$chr)
+    txdb <- keepSeqlevels(txdb, seqnames(seqi))
+    gme <- GRanges(seqnames(seqi), IRanges(start=1, end=seqlengths(seqi)), strand="*")
+    names(gme) <- seqnames(seqi)
     gme$type <- "."
     gen <- genes(txdb)
     mcols(gen) <- NULL
@@ -40,7 +39,7 @@
     return(fts)
 }
 
-.makeGenes <- function(par) {
+.makeGenes <- function(par, seqi) {
     tmp <- fread(paste(system2("grep", sprintf("'\tgene\t' %s", par$gtf.fn), stdout=TRUE),
                        collapse="\n"), showProgress=FALSE, header=FALSE)
     gen <- with(tmp, GRanges(V1, IRanges(V4, V5), V7,
@@ -51,15 +50,16 @@
                       gene_type = fread(paste(str_match(V9, "gene_type[^;]+"),
                         collapse="\n"), showProgress=FALSE, header=FALSE)$V2
                              ))
-    gen <- suppressWarnings(keepSeqlevels(gen, par$chr))
+    gen <- suppressWarnings(keepSeqlevels(gen, seqnames(seqi)))
     gene.names <- fread(par$goi.fn, head=FALSE)$V1
     mcols(gen)$goi <- FALSE
     mcols(gen[gen$gene_name %in% gene.names])$goi <- TRUE
     mcols(gen)$protein <- (gen$gene_type == "protein_coding")
+    names(gen) <- gen$gene_id
     return(gen)
 }
 
-.makeTranscripts <- function(par, fts) {
+.makeTranscripts <- function(par, fts, seqi) {
     tmp <- fread(paste(system2("grep", sprintf("'\ttranscript\t' %s", par$gtf.fn), stdout=TRUE),
                        collapse="\n"), showProgress=FALSE, header=FALSE)
     tx <- with(tmp, GRanges(V1, IRanges(V4, V5), V7,
@@ -70,7 +70,7 @@
                       tags = fread(paste(str_match(tmp$V9, "tags[^;]+"),
                         collapse="\n"), showProgress=FALSE, header=FALSE)$V2
                       ))
-    tx <- suppressWarnings(keepSeqlevels(tx, par$chr))
+    tx <- suppressWarnings(keepSeqlevels(tx, seqnames(seqi)))
     names(tx) <- tx$transcript_id
     ebt <- split(fts[fts$type=="E"], fts[fts$type=="E"]$split_id)
     ebs <- extractTranscriptSeqs(BSgenome.Hsapiens.UCSC.hg38, ebt)
@@ -130,58 +130,18 @@
     return(list(frame=frame, frame.da=frame.da))
 }
 
-#' @export
-makeAnnotations <- function(par) {
-    ## FEATURES
-    fts <- .makeFeatures(par)
-    ## GENES
-    genes <- .makeGenes(par)
-    transcripts <- .makeTranscripts(par, fts)
-    ## ANCHORS
-    begs.p = GRanges(par$chr, IRanges(start=0, end=0), strand="+")
-    ends.p = GRanges(par$chr, IRanges(start=par$chr.len+1, end=par$chr.len+1), strand="+")
-    begs.m = GRanges(par$chr, IRanges(start=0, end=0), strand="-")
-    ends.m = GRanges(par$chr, IRanges(start=par$chr.len+1, end=par$chr.len+1), strand="-")
-    anchs <- c(begs.p,ends.p,begs.m,ends.m)
-    anchs <- keepSeqlevels(anchs, par$chr)
-    ## LOCI
-    ## this makes sure that loci coveres the whole genome
-    tmp <- reduce(genes)
-    loci <- sort(c(tmp, gaps(c(tmp, anchs))))
-    mcols(loci)$locus_id <- sprintf("L%06d", 1:length(loci))
-    mcols(loci)$genic <- FALSE
-    mcols(loci[unique(sort(subjectHits(findOverlaps(genes, loci))))])$genic <- TRUE
-    ## FRAMES
-    frames <- .makeFrames(fts)
-    ## retrotransposed
-    tmp <- import(par$ret.fn)
-    strand(tmp) <- "*"
-    rets <- sort(suppressWarnings(keepSeqlevels(tmp, par$chr)))[,1] # keep only name
-    ## SNORNAs
-    tmp <- import(par$sno.fn)
-    snos <- suppressWarnings(keepSeqlevels(tmp, par$chr))
-    ## known artifacts
-    tmp <- fread(paste0(system2("zcat", par$art.fn, stdout=TRUE), collapse="\n"),
-                 showProgress=FALSE, header=TRUE)
-    arts <- tmp[(chr.5 %in% par$chr) & (chr.3 %in% par$chr)]
-    ## read repeats
-    tmp <- import(par$rep.fn)
-    strand(tmp) <- "*"
-    reps <- sort(keepSeqlevels(tmp, par$chr))
-    ## altlocs
-    alts <- with(suppressWarnings(fread(par$alt.fn))[,.(chr=paste0("chr", parent_name), beg=parent_start, end=parent_stop)],
-                 GRanges(chr, IRanges(beg, end), strand="*"))
-    ## segments
-    tmp <- fread(paste0(system2("zcat", par$seg.fn, stdout=TRUE), collapse="\n"),
-                 showProgress=FALSE, header=TRUE)[,c(2:4,8:10),with=FALSE]
-    segs <- tmp[(chrom %in% par$chr) & (otherChrom %in% par$chr)]
-    setnames(segs, c("chr.5", "start.5", "end.5", "chr.3", "start.3", "end.3"))
-    ## cytobands
-    tmp = fread(par$cyt.fn)[V1 %in% seqlevels(loci)[1:24]]
-    cyt <- with(tmp, GRanges(V1, IRanges(V2, V3), "*", cytoband_id=paste(V1, V4, sep="_"),
-                             arm=str_sub(V4, 1, 1),
-                             band=str_sub(V4, 2), stain=V5))
-    ## SVs
+.fixRanges <- function(rng, seqi, stranded=FALSE) {
+    if (!stranded) {
+        strand(rng) <- "*"
+    }
+    fix <- suppressWarnings(keepSeqlevels(rng, intersect(seqlevels(rng), seqlevels(seqi)), pruning.mode="coarse"))
+    seqlevels(fix) <- seqlevels(seqi)
+    seqinfo(fix) <- seqi
+    fix <- sort(fix)
+    return(fix)
+}
+
+.parseSVs <- function(par, core) {
     tmp.sv <- fread(paste0(system2("zcat", par$sv.fn, stdout=TRUE), collapse="\n"),
                     showProgress=FALSE, skip="#CHROM", colClasses=list(character=1))
     tmp.sv <- data.table(
@@ -195,81 +155,148 @@ makeAnnotations <- function(par) {
     )
     tmp.sv[is.na(end), end:=beg]
     svs <- with(tmp.sv, GRanges(chr, IRanges(beg, end), "*", type=typ, meth=cs, af=af))
-    ## Low-comlexity
-    tmp.low <- fread(paste0(system2("zcat", par$low.fn, stdout=TRUE), collapse="\n"), showProgress=FALSE, header=FALSE)
-    low <- with(tmp.low, GRanges(V1, IRanges(V2+1, V3), "*"))
-    ## IGX
-    igx <- with(fread(par$igx.fn, header=FALSE), GRanges(V1, IRanges(V2, V3)))
-    ## genes to blacklist
-    gtb <- genes[genes$gene_name %in% readLines(par$gtb.fn)]
-    ## cutoffs
-    cutoffs <- fread(par$cut.fn)
-    ## loci of interest
-    loi <- with(fread(par$loi.fn, showProgress=FALSE, header=FALSE), GRanges(V1, IRanges(V2, V3), name=V4))
+    svs <- .fixRanges(svs, core$seqi, stranded=FALSE)
+    return(svs)
+}
+
+.makeCoreAnnotations <- function(par) {
+    ##### seqi,features,genes,transcripts,loci,frames,cytobands
+    ## SEQI
+    seqi <- keepStandardChromosomes(Seqinfo(genome=par$gme))
+    ## FEATURES
+    fts <- .makeFeatures(par, seqi)
+    seqinfo(fts) <- seqi
+    ## GENES
+    genes <- .makeGenes(par, seqi)
+    seqinfo(genes) <- seqi
+    transcripts <- .makeTranscripts(par, fts, seqi)
+    seqinfo(transcripts) <- seqi
+    ## FRAMES
+    frames <- .makeFrames(fts)
+    ## LOCI
+    chr.len <- seqlengths(seqi)
+    begs.p = GRanges(seqnames(seqi), IRanges(start=0, end=0), strand="+")
+    ends.p = GRanges(seqnames(seqi), IRanges(start=chr.len+1, end=chr.len+1), strand="+")
+    begs.m = GRanges(seqnames(seqi), IRanges(start=0, end=0), strand="-")
+    ends.m = GRanges(seqnames(seqi), IRanges(start=chr.len+1, end=chr.len+1), strand="-")
+    anchs <- c(begs.p,ends.p,begs.m,ends.m) # this makes sure that loci coveres the whole genome
+    tmp <- reduce(genes)
+    loci <- sort(c(tmp, gaps(suppressWarnings(c(tmp, anchs))))) # anchs are outside -> warning
+    loci <- loci[strand(loci) != "*"]
+    mcols(loci)$locus_id <- sprintf("L%06d", 1:length(loci))
+    mcols(loci)$genic <- FALSE
+    mcols(loci[unique(sort(subjectHits(findOverlaps(genes, loci))))])$genic <- TRUE
+    ## CYTOBANDS
+    tmp = fread(par$cyt.fn)[V1 %in% seqlevels(loci)[1:24]]
+    cyt <- with(tmp, GRanges(V1, IRanges(V2+1, V3), "*", cytoband_id=paste(V1, V4, sep="_"),
+                             arm=str_sub(V4, 1, 1),
+                             band=str_sub(V4, 2), stain=V5))
+    seqlevels(cyt) <- seqlevels(seqi)
+    seqinfo(cyt) <- seqi
+    core <- list(seqi=seqi, features=fts, genes=genes, transcripts=transcripts, loci=loci, frames=frames, cytobands=cyt)
+    return(core)
+}
+
+.makeOverlapAnnotations <- function(core) {
     ## gene-locus overlaps
-    tmp <- findOverlaps(genes, loci)
-    grp.map <- data.table(gene_id=genes[queryHits(tmp)]$gene_id, gene_locus=tmp@to)
-    go <- data.table(locus_id=mcols(loci)$locus_id[grp.map$gene_locus],
+    tmp <- findOverlaps(core$genes, core$loci)
+    grp.map <- data.table(gene_id=core$genes[queryHits(tmp)]$gene_id, gene_locus=subjectHits(tmp))
+    go <- data.table(locus_id=mcols(core$loci)$locus_id[grp.map$gene_locus],
                      gene_id=grp.map$gene_id)
-    setkey(go, "locus_id")
     ## cytoband-locus overlaps
-    tmp <- data.table(as.data.frame(findOverlaps(cyt, loci)))
-    tmp$overlap <- width(pintersect(cyt[tmp$queryHits], loci[tmp$subjectHits]))
+    tmp <- data.table(as.data.frame(findOverlaps(core$cytobands, core$loci)))
+    tmp$overlap <- width(pintersect(core$cytobands[tmp$queryHits], core$loci[tmp$subjectHits]))
     tmp <- tmp[order(-overlap)]
     tmp <- tmp[!duplicated(tmp$subjectHits)]
-    co <- data.table(locus_id=factor(loci[tmp$subjectHits]$locus_id, levels=loci$locus_id),
-                     cytoband_id=cyt[tmp$queryHits]$cytoband_id
+    co <- data.table(locus_id=factor(core$loci[tmp$subjectHits]$locus_id, levels=core$loci$locus_id),
+                     cytoband_id=core$cyt[tmp$queryHits]$cytoband_id
                      )
-    setkey(co, "locus_id")
     ## locus-locus overlaps
-    tmp <- findOverlaps(loci, loci, ignore.strand=TRUE)
+    tmp <- findOverlaps(core$loci, core$loci, ignore.strand=TRUE)
     tmp <- tmp[queryHits(tmp) != subjectHits(tmp)]
-    bo <- data.table(locus_id.5=factor(mcols(loci)$locus_id[queryHits(tmp)], levels=loci$locus_id),
-                     locus_id.3=factor(mcols(loci)$locus_id[subjectHits(tmp)], levels=loci$locus_id))
+    lo <- data.table(locus_id.5=factor(mcols(core$loci)$locus_id[queryHits(tmp)], levels=core$loci$locus_id),
+                     locus_id.3=factor(mcols(core$loci)$locus_id[subjectHits(tmp)], levels=core$loci$locus_id))
     ## locus-locus adjacency
-    tmp <- findOverlaps(loci, drop.self=TRUE, maxgap=1)
-    la <- data.table(locus_id.5=factor(mcols(loci)$locus_id[queryHits(tmp)], levels=loci$locus_id),
-                     locus_id.3=factor(mcols(loci)$locus_id[subjectHits(tmp)], levels=loci$locus_id))
+    tmp <- findOverlaps(core$loci, drop.self=TRUE, maxgap=1)
+    la <- data.table(locus_id.5=factor(mcols(core$loci)$locus_id[queryHits(tmp)], levels=core$loci$locus_id),
+                     locus_id.3=factor(mcols(core$loci)$locus_id[subjectHits(tmp)], levels=core$loci$locus_id))
     ## locus-to-index
-    b2i <- data.table(locus_id=loci$locus_id, idx=1:length(loci))
+    l2i <- data.table(locus_id=core$loci$locus_id, idx=1:length(core$loci))
     ## gene-index
-    g2i <- data.table(gene_id=genes$gene_id, idx=1:length(genes))
+    g2i <- data.table(gene_id=core$genes$gene_id, idx=1:length(core$genes))
     ## cytoband-index
-    c2i <- data.table(cytoband_id=cyt$cytoband_id, idx=1:length(cyt))
+    c2i <- data.table(cytoband_id=core$cytobands$cytoband_id, idx=1:length(core$cytobands))
     ## ann object
-    setkeyv(bo, c("locus_id.5", "locus_id.3"))
+    setkeyv(lo, c("locus_id.5", "locus_id.3"))
     setkeyv(la, c("locus_id.5", "locus_id.3"))
-    setkey(b2i, "locus_id")
+    setkey(go, "locus_id")
+    setkey(co, "locus_id")
+    setkey(l2i, "locus_id")
     setkey(g2i, "gene_id")
     setkey(c2i, "cytoband_id")
-    ann <- list()
-    ann$features <- fts
-    ann$genes <- genes
-    ann$transcripts <- transcripts
-    ann$loci <- loci
-    ann$frames <- frames
-    ann$cytobands <- cyt
-    ann$repeats <- reps
-    ann$retros <- rets
-    ann$snornas <- snos
-    ann$artifacts <- arts
-    ann$segdups <- segs
-    ann$altlocs <- alts
-    ann$cutoffs <- cutoffs
-    ann$svs <- svs
-    ann$low <- low
-    ann$igx <- igx
-    ann$gtb <- gtb
-    ann$loi <- loi
-    ##
-    ann$gene2idx  <- g2i
-    ann$locus2idx <- b2i
-    ann$cytoband2idx <- c2i
-    ##
-    ann$gene.ovr <- go
-    ann$cytoband.ovr <- co
-    ann$locus.ovr <- bo
-    ann$locus.adj <- la
-    ann$par <- par
+    over <- list(gene2idx = g2i,
+                 locus2idx = l2i,
+                 cytoband2idx = c2i,
+                 gene.ovr = go,
+                 cytoband.ovr = co,
+                 locus.ovr = lo,
+                 locus.adj = la)
+    return(over)
+}
+
+.makeMaskAnnotations <- function(par, core) {
+    ## retrotransposed
+    rets <- .fixRanges(import(par$ret.fn), core$seqi)
+    ## SNORNAs
+    snos <- .fixRanges(import(par$sno.fn), core$seqi)
+    ## repeats
+    reps <- .fixRanges(import(par$rep.fn), core$seqi)
+    ## SVs
+    svs <- .parseSVs(par, core)
+    ## altlocs
+    alts <- with(suppressWarnings(fread(par$alt.fn))[,.(chr=paste0("chr", parent_name), beg=parent_start, end=parent_stop)],
+                 GRanges(chr, IRanges(beg, end), strand="*"))
+    alts <- .fixRanges(alts, core$seqi)
+    ## Low-comlexity
+    tmp.low <- fread(paste0(system2("zcat", par$low.fn, stdout=TRUE), collapse="\n"), showProgress=FALSE, header=FALSE)
+    tmp.low <- with(tmp.low, GRanges(V1, IRanges(V2+1, V3), "*"))
+    low <- .fixRanges(tmp.low, core$seqi)
+    ## IGX
+    igx <- .fixRanges(with(fread(par$igx.fn, header=FALSE), GRanges(V1, IRanges(V2, V3))), core$seqi)
+    mask <- list(repeats=reps, retros=rets, snornas=snos, altlocs=alts, svs=svs, igx=igx, low=low)
+    return(mask)
+}
+
+.makeMiscAnnotations <- function(par, core) {
+    ## known artifacts
+    tmp <- fread(paste0(system2("zcat", par$art.fn, stdout=TRUE), collapse="\n"),
+                 showProgress=FALSE, header=TRUE)
+    arts <- tmp[(chr.5 %in% seqlevels(core$seqi)) & (chr.3 %in% seqlevels(core$seqi))]
+    ## segments
+    tmp <- fread(paste0(system2("zcat", par$seg.fn, stdout=TRUE), collapse="\n"),
+                 showProgress=FALSE, header=TRUE)[,c(2:4,8:10),with=FALSE]
+    segs <- tmp[(chrom %in% seqlevels(core$seqi)) & (otherChrom %in% seqlevels(core$seqi))]
+    setnames(segs, c("chr.5", "start.5", "end.5", "chr.3", "start.3", "end.3"))
+    ## genes to blacklist
+    gtb <- core$genes[core$genes$gene_name %in% readLines(par$gtb.fn)]
+    ## loci of interest
+    tmp <- with(fread(par$loi.fn, showProgress=FALSE, header=FALSE), GRanges(V1, IRanges(V2, V3), name=V4))
+    loi <- .fixRanges(tmp, core$seqi)
+    ## cutoffs
+    cutoffs <- fread(par$cut.fn)
+    misc <- list(artifacts = arts,
+         segdups = segs,
+         gtb = gtb,
+         loi = loi,
+         cutoffs = cutoffs)
+}
+
+#' @export
+makeAnnotations <- function(par) {
+    core <- .makeCoreAnnotations(par)
+    over <- .makeOverlapAnnotations(core)
+    mask <- .makeMaskAnnotations(par, core)
+    misc <- .makeMiscAnnotations(par, core)
+    ann <- c(core, over, mask, misc, list(par=par))
     return(ann)
 }
