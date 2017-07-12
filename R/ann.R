@@ -1,6 +1,6 @@
 .makeFeatures <- function(par, seqi) {
-    txdb <- suppressWarnings(suppressMessages(makeTxDbFromGFF(par$gtf.fn)))
-    txdb <- keepSeqlevels(txdb, seqnames(seqi))
+    txdb <- suppressMessages(makeTxDbFromGFF(par$gtf.fn))
+    seqlevels(txdb, pruning.mode="coarse") <- seqlevels(seqi)
     gme <- GRanges(seqnames(seqi), IRanges(start=1, end=seqlengths(seqi)), strand="*")
     names(gme) <- seqnames(seqi)
     gme$type <- "."
@@ -36,6 +36,7 @@
     fts <- c(sss, cds, u3s, u5s, exs, ins, txs, gen, gme)
     fts$split_id <- names(fts)
     names(fts) <- NULL
+    seqinfo(fts) <- seqi
     return(fts)
 }
 
@@ -49,8 +50,9 @@
                         collapse="\n"), showProgress=FALSE, header=FALSE)$V2,
                       gene_type = fread(paste(str_match(V9, "gene_type[^;]+"),
                         collapse="\n"), showProgress=FALSE, header=FALSE)$V2
-                             ))
-    gen <- suppressWarnings(keepSeqlevels(gen, seqnames(seqi)))
+                      ))
+    seqlevels(gen, pruning.mode="coarse") <- seqlevels(seqi)
+    seqinfo(gen) <- seqi
     gene.names <- fread(par$goi.fn, head=FALSE)$V1
     mcols(gen)$goi <- FALSE
     mcols(gen[gen$gene_name %in% gene.names])$goi <- TRUE
@@ -70,7 +72,8 @@
                       tags = fread(paste(str_match(tmp$V9, "tags[^;]+"),
                         collapse="\n"), showProgress=FALSE, header=FALSE)$V2
                       ))
-    tx <- suppressWarnings(keepSeqlevels(tx, seqnames(seqi)))
+    seqlevels(tx, pruning.mode="coarse") <- seqlevels(seqi)
+    seqinfo(tx) <- seqi
     names(tx) <- tx$transcript_id
     ebt <- split(fts[fts$type=="E"], fts[fts$type=="E"]$split_id)
     ebs <- extractTranscriptSeqs(BSgenome.Hsapiens.UCSC.hg38, ebt)
@@ -134,10 +137,9 @@
     if (!stranded) {
         strand(rng) <- "*"
     }
-    fix <- suppressWarnings(keepSeqlevels(rng, intersect(seqlevels(rng), seqlevels(seqi)), pruning.mode="coarse"))
-    seqlevels(fix) <- seqlevels(seqi)
-    seqinfo(fix) <- seqi
-    fix <- sort(fix)
+    seqlevels(rng, pruning.mode="coarse") <- seqlevels(seqi)
+    seqinfo(rng) <- seqi
+    fix <- sort(rng)
     return(fix)
 }
 
@@ -165,23 +167,14 @@
     seqi <- keepStandardChromosomes(Seqinfo(genome=par$gme))
     ## FEATURES
     fts <- .makeFeatures(par, seqi)
-    seqinfo(fts) <- seqi
     ## GENES
     genes <- .makeGenes(par, seqi)
-    seqinfo(genes) <- seqi
     transcripts <- .makeTranscripts(par, fts, seqi)
-    seqinfo(transcripts) <- seqi
     ## FRAMES
     frames <- .makeFrames(fts)
     ## LOCI
-    chr.len <- seqlengths(seqi)
-    begs.p = GRanges(seqnames(seqi), IRanges(start=0, end=0), strand="+")
-    ends.p = GRanges(seqnames(seqi), IRanges(start=chr.len+1, end=chr.len+1), strand="+")
-    begs.m = GRanges(seqnames(seqi), IRanges(start=0, end=0), strand="-")
-    ends.m = GRanges(seqnames(seqi), IRanges(start=chr.len+1, end=chr.len+1), strand="-")
-    anchs <- c(begs.p,ends.p,begs.m,ends.m) # this makes sure that loci coveres the whole genome
     tmp <- reduce(genes)
-    loci <- sort(c(tmp, gaps(suppressWarnings(c(tmp, anchs))))) # anchs are outside -> warning
+    loci <- c(tmp, gaps(tmp))
     loci <- loci[strand(loci) != "*"]
     mcols(loci)$locus_id <- sprintf("L%06d", 1:length(loci))
     mcols(loci)$genic <- FALSE
@@ -191,7 +184,7 @@
     cyt <- with(tmp, GRanges(V1, IRanges(V2+1, V3), "*", cytoband_id=paste(V1, V4, sep="_"),
                              arm=str_sub(V4, 1, 1),
                              band=str_sub(V4, 2), stain=V5))
-    seqlevels(cyt) <- seqlevels(seqi)
+    seqlevels(cyt, pruning.mode="coarse") <- seqlevels(seqi)
     seqinfo(cyt) <- seqi
     core <- list(seqi=seqi, features=fts, genes=genes, transcripts=transcripts, loci=loci, frames=frames, cytobands=cyt)
     return(core)
@@ -254,7 +247,7 @@
     ## SVs
     svs <- .parseSVs(par, core)
     ## altlocs
-    alts <- with(suppressWarnings(fread(par$alt.fn))[,.(chr=paste0("chr", parent_name), beg=parent_start, end=parent_stop)],
+    alts <- with(fread(par$alt.fn)[,.(chr=paste0("chr", parent_name), beg=parent_start, end=parent_stop)],
                  GRanges(chr, IRanges(beg, end), strand="*"))
     alts <- .fixRanges(alts, core$seqi)
     ## Low-comlexity

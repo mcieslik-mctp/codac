@@ -275,14 +275,14 @@
 }
 
 .defineHRbreakpoints <- function(bpt, ann) {
-    ## recurrent breakpoints including !d2a
+    ## recurrent d2a breakpoints
     bpt[,hr.bpt:=FALSE]
-    bpt[l1=="spn" & l2=="dist", ":="(
+    bpt[l1=="spn" & l2=="dist" & d2a, ":="(
         rec.5=.N,
         unq.rec.5=1L
     ), by=.(chr.5, pos.5, str.5)]
     bpt[rec.5>1, unq.rec.5:=uniqueN(.SD), by=.(chr.5, pos.5, str.5), .SDcols=c("locus_id.3.1", "locus_id.5.2")]
-    bpt[l1=="spn" & l2=="dist", ":="(
+    bpt[l1=="spn" & l2=="dist" & d2a, ":="(
         rec.3=.N,
         unq.rec.3=1L
     ), by=.(chr.3, pos.3, str.3)]
@@ -334,7 +334,7 @@
     types=list(
         "sl"=quote((hc.bpt & (topo == "inv" | !d2a) & !art ) & l1=="spn" & l2=="prox"),
         "bs"=quote((         (topo == "dup" &  d2a) & !art ) & l1=="spn" & l2=="prox"),
-        "ts"=quote((hr.bpt &                   d2a  & !art ) & l1=="spn" & l2=="dist"),
+        "ts"=quote((hr.bpt &                   d2a         ) & l1=="spn" & l2=="dist"),
         "sv"=quote((hi.bpt |                (hq.bpt & !art)) & l1=="spn" & l2=="dist")
     )
     for (name in names(types)) {

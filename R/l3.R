@@ -7,8 +7,8 @@ bsBundle <- function(bun, ann) {
 }
 
 #' @export
-bsReport <- function(bs.bun, spl, ann, only.prot) {
-    bs.rep <- .reportMini(bs.bun, spl, ann, TRUE, only.prot)
+bsReport <- function(bs.bun, spl, cts, ann, only.prot) {
+    bs.rep <- .reportMini(bs.bun, spl, cts, ann, TRUE, only.prot)
     return(bs.rep)
 }
 
@@ -21,8 +21,8 @@ slBundle <- function(bun, ann) {
 }
 
 #' @export
-slReport <- function(sl.bun, spl, ann, only.prot) {
-    sl.rep <- .reportMini(sl.bun, spl, ann, FALSE, only.prot)
+slReport <- function(sl.bun, spl, cts, ann, only.prot) {
+    sl.rep <- .reportMini(sl.bun, spl, cts, ann, FALSE, only.prot)
     return(sl.rep)
 }
 
@@ -35,8 +35,8 @@ svBundle <- function(bun, ann) {
 }
 
 #' @export
-svReport <- function(sv.bun, spl, ann, only.prot) {
-    sv.rep <- .reportSV(sv.bun, spl, ann, only.prot)
+svReport <- function(sv.bun, spl, cts, ann, only.prot) {
+    sv.rep <- .reportSV(sv.bun, spl, cts, ann, only.prot)
     return(sv.rep)
 }
 
@@ -49,7 +49,7 @@ tsBundle <- function(bun, ann) {
 }
 
 #' @export
-tsReport <- function(ts.bun, spl, ann, only.prot) {
-    ts.rep <- .reportMini(ts.bun, spl, ann, TRUE, only.prot)
+tsReport <- function(ts.bun, spl, cts, ann, only.prot) {
+    ts.rep <- .reportMini(ts.bun, spl, cts, ann, TRUE, only.prot)
     return(ts.rep)
 }

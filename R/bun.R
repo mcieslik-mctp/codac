@@ -12,8 +12,9 @@ makeBundle <- function(ann, pth) {
 statBundle <- function(bun, ann) {
     aln.stat <- .alignment.stat(bun, ann)
     bpt.stat <- .breakpoint.stat(bun, aln.stat$eff.frg)
+    loc.stat <- .locus.stat(bun, ann)
     log.stat <- list(version=packageVersion("codac"), beg.time=NULL, end.time=NULL, gc=NULL)
-    bun.stat <- c(aln.stat, bpt.stat)
+    bun.stat <- c(aln.stat, bpt.stat, loc.stat)
     bun.stat$log <- log.stat
     return(bun.stat)
 }
@@ -27,7 +28,7 @@ filterBundle <- function(sel.bpt, bun, ann) {
     setkeyv(bun$jnc, JNC.KEY)
     setkeyv(sel.jnc, JNC.KEY)
     ## output bundle
-    sel.bun <- list(bpt=sel.bpt, jnc=sel.jnc, spl=NULL, dir=bun$dir, type=bun$type)
+    sel.bun <- list(bpt=sel.bpt, jnc=sel.jnc, spl=NULL, cts=NULL, dir=bun$dir, type=bun$type)
     return(sel.bun)
 }
 

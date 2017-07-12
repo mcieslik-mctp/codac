@@ -77,7 +77,10 @@ detect <- function() {
                             help="disable bundle stats"),
       optparse::make_option(c("-p", "--nospl"), action="store_true",
                             default=FALSE,
-                            help="disable splicing report"),
+                            help="do not save splicing counts"),
+      optparse::make_option(c("-p", "--nocts"), action="store_true",
+                            default=FALSE,
+                            help="do not save gene counts"),
       optparse::make_option(c("-v", "--nosv"), action="store_true",
                             default=FALSE,
                             help="disable structural variant calls"),
@@ -126,7 +129,7 @@ detect <- function() {
     end.time <- Sys.time()
     ## FULL
     if (opt$options$full) {
-        saveRDS(bun, file.path(out.dir, paste0(sid, "-codac-sv-full.rds")))
+        saveRDS(bun, file.path(out.dir, paste0(sid, "-codac-full.rds")))
     }
     ## STAT
     if (!opt$options$nostat) {
@@ -139,6 +142,10 @@ detect <- function() {
     ## SPL
     if (!opt$options$nospl) {
         saveRDS(bun$spl, file.path(out.dir, paste0(sid, "-codac-spl.rds")))
+    }
+    ## CTS
+    if (!opt$options$nocts) {
+        saveRDS(bun$cts, file.path(out.dir, paste0(sid, "-codac-cts.rds")))
     }
     ## BS
     if (!opt$options$nobs) {
@@ -203,7 +210,7 @@ report <- function() {
                             default=FALSE,
                             help="include non-coding gene names in output")
     )
-    parser = optparse::OptionParser("Rscript -e 'library(methods);codac::report()' [options] cfg_file spl_file bun_file [out_dir]",
+    parser = optparse::OptionParser("Rscript -e 'library(methods);codac::report()' [options] cfg_file spl_file cts_file bun_file [out_dir]",
       description=c("Export \n"),
       epilogue=c(
         "Written by Marcin Cieslik (mcieslik@med.umich.edu) ",
@@ -220,21 +227,23 @@ report <- function() {
     ##
     cfg.pth <- opt$args[1]
     spl.pth <- opt$args[2]
-    inp.pth <- opt$args[3]
-    out.dir <- ifelse(is.na(opt$args[4]), getwd(), opt$args[4])
+    cts.pth <- opt$args[3]
+    inp.pth <- opt$args[4]
+    out.dir <- ifelse(is.na(opt$args[5]), getwd(), opt$args[5])
     ##
     ann <- readRDS(cfg.pth)
     spl <- readRDS(spl.pth)
+    cts <- readRDS(cts.pth)
     bun <- readRDS(inp.pth)
     name <- str_replace(basename(inp.pth), ".rds$", "")
     if (bun$type == "bs") {
-        rep <- bsFormat(bsReport(bun, spl, ann, !opt$options$noncoding))
+        rep <- bsFormat(bsReport(bun, spl, cts, ann, !opt$options$noncoding))
     } else if (bun$type == "sv") {
-        rep <- svFormat(svReport(bun, spl, ann, !opt$options$noncoding))
+        rep <- svFormat(svReport(bun, spl, cts, ann, !opt$options$noncoding))
     } else if (bun$type == "sl") {
-        rep <- slFormat(slReport(bun, spl, ann, !opt$options$noncoding))
+        rep <- slFormat(slReport(bun, spl, cts, ann, !opt$options$noncoding))
     } else if (bun$type == "ts") {
-        rep <- tsFormat(tsReport(bun, spl, ann, !opt$options$noncoding))
+        rep <- tsFormat(tsReport(bun, spl, cts, ann, !opt$options$noncoding))
     }
     else {
         write("Unknown bundle type.\n", stderr())

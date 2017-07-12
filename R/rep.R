@@ -55,7 +55,15 @@
     return(tbl)
 }
 
-.reportSV <- function(bun, spl, ann, only.prot) {
+.addExpressionGeneLoci <- function(tbl, cts) {
+    setkey(tbl, locus_id.5.1)
+    tbl[cts, cpm.5:=cpm]
+    setkey(tbl, locus_id.3.1)
+    tbl[cts, cpm.3:=cpm]
+    return(tbl)
+}
+
+.reportSV <- function(bun, spl, cts, ann, only.prot) {
     bpt <- copy(bun$bpt)
     bpt[, sum.enc:=NA_integer_]
     bpt[, sum.enc:=sum(sum.jnc * type==-1), by=CHM.KEY]
@@ -98,10 +106,11 @@
         tbl[, tot.jnc.5:=sum(sum.jnc), by=.(chr.5, pos.5, str.5, type>-1)]
         tbl[, tot.jnc.3:=sum(sum.jnc), by=.(chr.3, pos.3, str.3, type>-1)]
     })
+    tbl <- .addExpressionGeneLoci(tbl, cts)
     return(tbl)
 }
 
-.reportMini <- function(bun, spl, ann, only.d2a, only.prot) {
+.reportMini <- function(bun, spl, cts, ann, only.d2a, only.prot) {
     bpt <- copy(bun$bpt)
     if (only.d2a) {
         bpt <- bpt[(d2a)]
@@ -117,5 +126,6 @@
         bpt[, tot.jnc.5:=sum(sum.jnc), by=.(chr.5, pos.5, str.5, type>-1)]
         bpt[, tot.jnc.3:=sum(sum.jnc), by=.(chr.3, pos.3, str.3, type>-1)]
     })
+    bpt <- .addExpressionGeneLoci(bpt, cts)
     return(bpt)
 }

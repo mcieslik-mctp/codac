@@ -10,7 +10,7 @@ ASM.EMPTY <- list(
                      warn.5 = logical(), warn.3 = logical(), sv.chain=integer())
 )
 
-.writeInchworkFastas <- function(bun, ann) {
+.writeInchwormFastas <- function(bun, ann) {
     setkeyv(bun$bpt, BPT.KEY)
     setkeyv(bun$jnc, BPT.KEY)
     tmp <- bun$jnc[bun$bpt, .(qname, seq.5, seq.3)]
@@ -24,7 +24,7 @@ ASM.EMPTY <- list(
 }
 
 .runInchworm <- function(bun, ann) {
-    cfn <- .writeInchworkFastas(bun)
+    cfn <- .writeInchwormFastas(bun)
     ofn <- paste0(cfn, ".iworm")
     err <- system2("inchworm", c("--reads", cfn, "--run_inchworm"), stdout=ofn, stderr=NULL)
     out <- readDNAStringSet(ofn)

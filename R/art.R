@@ -223,9 +223,9 @@
     xpt[
         ## cannot be same "long" repeat
         (!(
-           art.5 %in% c("l1", "l2", "l3", "mlt", "mer", "erv", "ltr", "igx")
+           art.5 %in% c("l1", "l2", "l3", "mlt", "mer", "erv", "ltr", "igx", "sv")
            &
-           art.3 %in% c("l1", "l2", "l3", "mlt", "mer", "erv", "ltr", "igx")
+           art.3 %in% c("l1", "l2", "l3", "mlt", "mer", "erv", "ltr", "igx", "sv")
            &
            art.5 == art.3
          )
@@ -241,9 +241,9 @@
         ## cannot be bad aritfact 
         &
         (!(
-           (art.5 %in% c("sv", "alu", "psi", "mtr", "alt")) & (art.3 != "nil")
+           (art.5 %in% c("alu", "psi", "mtr", "alt")) & (art.3 != "nil")
            |
-           (art.3 %in% c("sv", "alu", "psi", "mtr", "alt")) & (art.5 != "nil")
+           (art.3 %in% c("alu", "psi", "mtr", "alt")) & (art.5 != "nil")
           )
         )
         ## cannot be ugly artifact on either end

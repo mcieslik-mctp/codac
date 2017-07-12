@@ -9,6 +9,7 @@ makeDirectory <- function(dir.fn) {
       aln.log.fn = list.files(dir.fn, pattern="*_alig.log$", full.names=TRUE),
       bw.fn = list.files(dir.fn, "*alig_csort.bw$", full.names=TRUE),
       cts.sum.fn = list.files(dir.fn, "*cts.cts.summary$", full.names=TRUE),
+      cts.fn = list.files(dir.fn, "*cts.cts.gz$", full.names=TRUE),
       sid = basename(dir.fn)
     )
     return(dir)
