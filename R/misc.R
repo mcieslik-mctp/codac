@@ -54,16 +54,17 @@
     return(lgt)
 }
 
-.prepareTxs <- function(bun, lgt) {
+.prepareTxs <- function(bun, lgt, max.size=20000) {
     lids <- unique(c(
         as.character(bun$bpt$locus_id.5.1),
         as.character(bun$bpt$locus_id.3.1),
         as.character(bun$bpt$locus_id.5.2),
         as.character(bun$bpt$locus_id.3.2)
     ))
-    txs <- lgt[lids,nomatch=0]
+    txs <- lgt[lids, nomatch=0]
+    txs <- txs[nchar(tx.seq) <= max.size]
     txs[,mrna:=list(as.list(DNAStringSet(tx.seq)))]
     txs[,prot:=list(as.list(suppressWarnings(translate(subseq(DNAStringSet(tx.seq), cds1, cdsN)))))]
-    txs <-  txs[,.(locus_id, transcript_id, mrna, prot, cds1, cdsN, tags)]
+    txs <- txs[,.(locus_id, transcript_id, mrna, prot, cds1, cdsN, tags)]
     return(txs)
 }

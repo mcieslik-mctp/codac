@@ -10,8 +10,8 @@
     ret.3 <- suppressWarnings(bpt.3 %over% ann$retros)
 
     ## SVs
-    svs.5 <- suppressWarnings(bpt.5 %over% ann$svs)
-    svs.3 <- suppressWarnings(bpt.3 %over% ann$svs)
+    svs.5 <- suppressWarnings(bpt.5 %over% ann$svs[width(ann$svs) > 20000])
+    svs.3 <- suppressWarnings(bpt.3 %over% ann$svs[width(ann$svs) > 20000])
 
     ## LOW
     low.5 <- suppressWarnings(bpt.5 %over% ann$low[width(ann$low) >= par$jnc.ovr])
@@ -138,11 +138,6 @@
     rnu.5 <- suppressWarnings(bpt.5 %over% rnu)
     rnu.3 <- suppressWarnings(bpt.3 %over% rnu)
     
-    ## ChrM
-    chrm <- ann$loci[seqnames(ann$loci)=="chrM"]
-    chrm.5 <- suppressWarnings(bpt.5 %over% chrm)
-    chrm.3 <- suppressWarnings(bpt.3 %over% chrm)
-
     ## IGX
     igx.5 <- bpt.5 %over% ann$igx
     igx.3 <- bpt.3 %over% ann$igx
@@ -150,6 +145,12 @@
     ## GTB
     gtb.5 <- bpt.5 %over% ann$gtb
     gtb.3 <- bpt.3 %over% ann$gtb
+
+    ## ChrM
+    cmt <- ann$loci[seqnames(ann$loci)=="chrM"]
+    gmt <- ann$svs[ann$svs$meth=="NUMT_umich"]
+    cmt.5 <- suppressWarnings(bpt.5 %over% cmt | bpt.5 %over% gmt)
+    cmt.3 <- suppressWarnings(bpt.3 %over% cmt | bpt.3 %over% gmt)
     
     ##
     xpt$art.5 <- "nil"
@@ -159,6 +160,8 @@
     xpt[low.5, art.5:="low"]
     xpt[low.3, art.3:="low"]
     ## not so bad
+    xpt[svs.5, art.5:="sv"]
+    xpt[svs.3, art.3:="sv"]
     xpt[l1.5, art.5:="l1"]
     xpt[l1.3, art.3:="l1"]
     xpt[l2.5, art.5:="l2"]
@@ -185,8 +188,6 @@
     xpt[rnu.5, art.5:="rnu"]
     xpt[rnu.3, art.3:="rnu"]
     ## "structural" repeats
-    xpt[svs.5, art.5:="sv"]
-    xpt[svs.3, art.3:="sv"]
     xpt[alu.5, art.5:="alu"]
     xpt[alu.3, art.3:="alu"]
     xpt[psi.5, art.5:="psi"]
@@ -195,23 +196,24 @@
     xpt[mtr.3, art.3:="mtr"]
     xpt[alt.5, art.5:="alt"]
     xpt[alt.3, art.3:="alt"]
+    ## segmental duplications
+    xpt[seg.53, ":="(art.5="seg", art.3="seg")]
+    ## alignment artifacts
+    xpt[aln.53, ":="(art.5="aln", art.3="aln")]
     ## bad repeats
     xpt[xlw.5, art.5:="xlw"]
     xpt[xlw.3, art.3:="xlw"]
     xpt[ret.5, art.5:="ret"]
     xpt[ret.3, art.3:="ret"]
-    xpt[chrm.5, art.5:="cmt"]
-    xpt[chrm.3, art.3:="cmt"]
     xpt[msr.5, art.5:="msr"]
     xpt[msr.3, art.3:="msr"]
     xpt[sim.5, art.5:="sim"]
     xpt[sim.3, art.3:="sim"]
     xpt[gtb.5, art.5:="gtb"]
     xpt[gtb.3, art.3:="gtb"]
-    ## segmental duplications
-    xpt[seg.53, ":="(art.5="seg", art.3="seg")]
-    ## alignment artifacts
-    xpt[aln.53, ":="(art.5="aln", art.3="aln")]
+    ## chromosome M
+    xpt[cmt.5, art.5:="cmt"]
+    xpt[cmt.3, art.3:="cmt"]
     ## levels
     art.levels <- sort(unique(c(xpt$art.5, xpt$art.3)))
     xpt$art.5 <- factor(xpt$art.5, levels=art.levels)

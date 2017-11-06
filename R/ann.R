@@ -210,7 +210,7 @@
     lo <- data.table(locus_id.5=factor(mcols(core$loci)$locus_id[queryHits(tmp)], levels=core$loci$locus_id),
                      locus_id.3=factor(mcols(core$loci)$locus_id[subjectHits(tmp)], levels=core$loci$locus_id))
     ## locus-locus adjacency
-    tmp <- findOverlaps(core$loci, drop.self=TRUE, maxgap=1)
+    tmp <- findOverlaps(core$loci, drop.self=TRUE, maxgap=0)
     la <- data.table(locus_id.5=factor(mcols(core$loci)$locus_id[queryHits(tmp)], levels=core$loci$locus_id),
                      locus_id.3=factor(mcols(core$loci)$locus_id[subjectHits(tmp)], levels=core$loci$locus_id))
     ## locus-to-index

@@ -250,13 +250,14 @@
 }
 
 .defineHIbreakpoints <- function(bpt, ann) {
+    hi.art <- c("aln", "gtb", "cmt")
     hi.lid.goi <- .l2g.full(ann)[(goi)]$locus_id
     hi.lid.loi <- ann$loci[ann$loci %over% ann$loi]$locus_id
     hi.lid <- unique(c(hi.lid.goi, hi.lid.loi))
     bpt[,hi.bpt:=FALSE]
     bpt[
         ( ## not known alignment artifact or blacklisted gene
-            !(art.5 %in% c("aln", "gtb", "cmt")) & !(art.3 %in% c("aln", "gtb", "cmt"))
+            !(art.5 %in% hi.art) & !(art.3 %in% hi.art)
         )
         &
         ( ## high-importance locus
@@ -276,13 +277,14 @@
 
 .defineHRbreakpoints <- function(bpt, ann) {
     ## recurrent d2a breakpoints
+    hr.art <- c("rpx", "ret", "cmt")
     bpt[,hr.bpt:=FALSE]
-    bpt[l1=="spn" & l2=="dist" & d2a, ":="(
+    bpt[l1=="spn" & l2=="dist" & d2a & !(art.5 %in% hr.art) & !(art.3 %in% hr.art), ":="(
         rec.5=.N,
         unq.rec.5=1L
     ), by=.(chr.5, pos.5, str.5)]
     bpt[rec.5>1, unq.rec.5:=uniqueN(.SD), by=.(chr.5, pos.5, str.5), .SDcols=c("locus_id.3.1", "locus_id.5.2")]
-    bpt[l1=="spn" & l2=="dist" & d2a, ":="(
+    bpt[l1=="spn" & l2=="dist" & d2a & !(art.5 %in% hr.art) & !(art.3 %in% hr.art), ":="(
         rec.3=.N,
         unq.rec.3=1L
     ), by=.(chr.3, pos.3, str.3)]
@@ -331,10 +333,11 @@
 
 .linkBreakpoints <- function(bpt, ann) {
     ## not adjacent read-through, not adjacent tandem duplication, not within locus
+    hr.art <- c("rpx", "ret", "cmt")
     types=list(
         "sl"=quote((hc.bpt & (topo == "inv" | !d2a) & !art ) & l1=="spn" & l2=="prox"),
         "bs"=quote((         (topo == "dup" &  d2a) & !art ) & l1=="spn" & l2=="prox"),
-        "ts"=quote((hr.bpt &                   d2a         ) & l1=="spn" & l2=="dist"),
+        "ts"=quote((hr.bpt                                 ) & l1=="spn" & l2=="dist"),
         "sv"=quote((hi.bpt |                (hq.bpt & !art)) & l1=="spn" & l2=="dist")
     )
     for (name in names(types)) {

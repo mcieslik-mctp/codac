@@ -16,7 +16,7 @@ makeDirectory <- function(dir.fn) {
 }
 
 #' @export
-makeParams <- function(gtf.fn, genome="hg38", config.file="built-in", preset="longread.balanced",
+makeParams <- function(gtf.fn, gmap.index, mm2.index, genome="hg38", config.file="built-in", preset="longread.balanced",
                        stranded=TRUE, lib.type="poly", only.spn.bpt=TRUE, only.hx.bpt=TRUE, opts=list()) {
     ## presets
     if (config.file=="built-in") {
@@ -34,6 +34,8 @@ makeParams <- function(gtf.fn, genome="hg38", config.file="built-in", preset="lo
     par38 <- list(
       gme = "hg38",
       gtf.fn = gtf.fn,
+      gmap.index = gmap.index,
+      mm2.index = mm2.index,
       cut.fn = system.file("extdata", sprintf("qc-cutoffs-%s.conf", pres$lib.type), package="codac"),
       goi.fn = system.file("extdata", "hg38.genes-of-interest.txt", package="codac"),
       loi.fn = system.file("extdata", "hg38.loci-of-interest.txt", package="codac"),

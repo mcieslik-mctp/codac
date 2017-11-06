@@ -3,14 +3,16 @@
 #' @import GenomicFeatures
 #' @import BSgenome.Hsapiens.UCSC.hg38
 #' @importFrom parallel mclapply
-#' @importFrom stringr str_sub str_split str_match str_replace
+#' @importFrom stringr str_sub str_split str_match str_replace str_replace_all
 #' @importFrom igraph graph.data.frame V clusters
 #' @importFrom GenomeInfoDb keepSeqlevels seqlevels keepStandardChromosomes Seqinfo seqlengths
 #' @importFrom IRanges IRanges %over%
 #' @importFrom ShortRead dustyScore
+#' @importFrom Rsamtools scanBam ScanBamParam
 #' @importFrom rtracklayer import import.bw
 #' @importFrom S4Vectors queryHits subjectHits
 #' @importFrom BSgenome getSeq
+#' @importFrom GenomicAlignments cigarWidthAlongQuerySpace cigarWidthAlongReferenceSpace
 #' @importFrom data.table data.table fread setnames setkey setkeyv copy as.data.table uniqueN rbindlist key melt dcast.data.table
 NULL
 

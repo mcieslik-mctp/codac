@@ -2,9 +2,10 @@
 makeBundle <- function(ann, pth) {
     dir <- makeDirectory(pth)
     spl <- readSplices(dir, ann)
+    cts <- readCounts(dir, ann)
     jnc <- readJunctions(dir, ann)
     bpt <- collapseBreakpoints(jnc, ann)
-    bun <- list(bpt=bpt, jnc=jnc, spl=spl, dir=dir, type="full")
+    bun <- list(bpt=bpt, jnc=jnc, spl=spl, cts=cts, dir=dir, type="full")
     return(bun)
 }
 
@@ -33,15 +34,20 @@ filterBundle <- function(sel.bpt, bun, ann) {
 }
 
 #' @export
-splitBundle <- function(bun, col) {
-    split.bpt <- split(bun$bpt, bun$bpt[[col]])
+splitBundle <- function(bun, split.col=NULL) {
+    if (is.null(split.col)) {
+        split.val <- seq(1, nrow(bun$bpt))
+    } else {
+        split.val <- bun$bpt[[split.col]]
+    }
+    split.bpt <- split(bun$bpt, split.val)
     split.bun <- lapply(split.bpt, filterBundle, bun=bun, ann=ann)
     return(split.bun)
 }
 
 #' @export
 importBundles <- function(smp.pth, all.sfx=c("bs", "sl", "sv", "ts", "sv-asm")) {
-    all.sfx <- c("spl", "stat", all.sfx)
+    all.sfx <- c("spl", "cts", "stat", all.sfx)
     rds.fns <- list.files(smp.pth, "*.rds", full.names=TRUE)
     rds.pfx <- str_match(basename(rds.fns), "(.*)-codac")[,2]
     rds.fns.split <- split(rds.fns, rds.pfx)

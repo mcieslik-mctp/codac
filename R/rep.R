@@ -65,20 +65,17 @@
 
 .reportSV <- function(bun, spl, cts, ann, only.prot) {
     bpt <- copy(bun$bpt)
-    bpt[, sum.enc:=NA_integer_]
-    bpt[, sum.enc:=sum(sum.jnc * type==-1), by=CHM.KEY]
-    ## order breakpoints
-    orf.scr <- ifelse(bpt$orf, 1e4, 1)
-    d2a.scr <- ifelse(bpt$d2a, 1e3, 1)
-    typ.scr <- ifelse(bpt$type > -1, 1e2, 1)
-    art.scr <- ifelse(bpt$art.5=="nil" & bpt$art.3=="nil", 1e1, 1)
-    bpt.rnk <- order(-(orf.scr * d2a.scr * art.scr * bpt$hq.sum.jnc))
-    bpt <- bpt[bpt.rnk]
-    ## filter breakpoints
+    ## total reads
+    bpt[, tot.enc:=NA_integer_]
+    bpt[, tot.enc:=sum(sum.jnc * (l1=="enc")), by=CHM.KEY]
+    bpt[, tot.jnc:=NA_integer_]
+    bpt[, tot.jnc:=sum(sum.jnc * (l1=="spn")), by=CHM.KEY]
+    ## order and filter breakpoints
+    bpt <- bpt[order(orf, d2a, l1=="spn", sum.jnc, decreasing=TRUE)]
     if (nrow(bpt) > 0) {
         bpt[, first:=(1:.N), by=CHM.KEY]
         if (ann$par$only.spn.bpt) {
-            bpt <- bpt[(type > -1)]
+            bpt <- bpt[(l1=="spn")]
         }
         if (ann$par$only.hx.bpt) {
             bpt <- bpt[(hq.bpt | (hi.bpt & first==1))]
@@ -103,8 +100,8 @@
     tbl <- .addCyto(tbl, ann)
     tbl <- .addExpressionSJ(tbl, spl)
     suppressWarnings({
-        tbl[, tot.jnc.5:=sum(sum.jnc), by=.(chr.5, pos.5, str.5, type>-1)]
-        tbl[, tot.jnc.3:=sum(sum.jnc), by=.(chr.3, pos.3, str.3, type>-1)]
+        tbl[, tot.jnc.5:=sum(sum.jnc), by=.(chr.5, pos.5, str.5, l1=="spn")]
+        tbl[, tot.jnc.3:=sum(sum.jnc), by=.(chr.3, pos.3, str.3, l1=="spn")]
     })
     tbl <- .addExpressionGeneLoci(tbl, cts)
     return(tbl)
@@ -123,8 +120,8 @@
     bpt <- .addCyto(bpt, ann)
     bpt <- .addExpressionSJ(bpt, spl)
     suppressWarnings({
-        bpt[, tot.jnc.5:=sum(sum.jnc), by=.(chr.5, pos.5, str.5, type>-1)]
-        bpt[, tot.jnc.3:=sum(sum.jnc), by=.(chr.3, pos.3, str.3, type>-1)]
+        bpt[, tot.jnc.5:=sum(sum.jnc), by=.(chr.5, pos.5, str.5, l1=="spn")]
+        bpt[, tot.jnc.3:=sum(sum.jnc), by=.(chr.3, pos.3, str.3, l1=="spn")]
     })
     bpt <- .addExpressionGeneLoci(bpt, cts)
     return(bpt)

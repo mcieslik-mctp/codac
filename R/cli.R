@@ -26,7 +26,7 @@ config <- function() {
                             default=NA_character_,
                             help="additional options")
     )
-    parser = optparse::OptionParser("Rscript -e 'library(methods);codac::config()' [options] gtf_file out_file",
+    parser = optparse::OptionParser("Rscript -e 'library(methods);codac::config()' [options] gtf_file mm2_index gmap_index out_file",
       description=c("\n"),
       epilogue=c(
         "Written by Marcin Cieslik (mcieslik@med.umich.edu) ",
@@ -45,20 +45,18 @@ config <- function() {
         opts <- list()
     }
     ##
-    if (length(opt$args) < 1) {
+    if (length(opt$args) < 4) {
         optparse::print_help(parser)
-        write("gtf_file is missing.\n", stderr())
-        quit("no", 1)
-    }
-    if (length(opt$args) < 2) {
-        optparse::print_help(parser)
-        write("out_file is missing.\n", stderr())
+        write("Some of gtf_file gmap_genome out_file are missing.\n", stderr())
         quit("no", 1)
     }
     gtf <- opt$args[1]
-    out <- opt$args[2]
-    gme <- opt$options$genome
-    par <- makeParams(gtf, genome=gme, config.file=opt$options$config,
+    mm2_index <- opt$args[2]
+    gmap_index <- opt$args[3]
+    out <- opt$args[4]
+    gmap.genome <- opt$options$gmap.genome
+    par <- makeParams(gtf, gmap.genome=gmap.genome, genome=gme,
+                      config.file=opt$options$config,
                       preset=opt$options$preset,
                       lib.type=opt$options$libtype,
                       stranded=!opt$options$unstranded,
@@ -78,7 +76,7 @@ detect <- function() {
       optparse::make_option(c("-p", "--nospl"), action="store_true",
                             default=FALSE,
                             help="do not save splicing counts"),
-      optparse::make_option(c("-p", "--nocts"), action="store_true",
+      optparse::make_option(c("-c", "--nocts"), action="store_true",
                             default=FALSE,
                             help="do not save gene counts"),
       optparse::make_option(c("-v", "--nosv"), action="store_true",
@@ -93,6 +91,9 @@ detect <- function() {
       optparse::make_option(c("-t", "--nots"), action="store_true",
                             default=FALSE,
                             help="disable trans-splice calls"),
+      optparse::make_option(c("-a", "--noasm"), action="store_true",
+                            default=FALSE,
+                            help="disable assembly and realignment"),
       optparse::make_option(c("-f", "--full"), action="store_true",
                             default=FALSE,
                             help="set flag to store temporary (unfiltered) bundle")
@@ -160,6 +161,11 @@ detect <- function() {
     ## SV
     if (!opt$options$nosv) {
         sv.bun <- svBundle(bun, ann)
+        if (!opt$options$noasm) {
+            sv.bun <- assembleBreakpoints(sv.bun, ann)
+            sv.bun <- alignBreakpoints(sv.bun, ann)
+            sv.bun <- validateBreakpoints(sv.bun, ann)
+        }
         saveRDS(sv.bun, file.path(out.dir, paste0(sid, "-codac-sv.rds")))
     }
     ## TS
@@ -167,7 +173,6 @@ detect <- function() {
         ts.bun <- tsBundle(bun, ann)
         saveRDS(ts.bun, file.path(out.dir, paste0(sid, "-codac-ts.rds")))
     }
-
 }
 
 #' @export
