@@ -36,7 +36,7 @@ filterBundle <- function(sel.bpt, bun, ann) {
 #' @export
 splitBundle <- function(bun, split.col=NULL) {
     if (is.null(split.col)) {
-        split.val <- seq(1, nrow(bun$bpt))
+        split.val <- bun$bpt[,.I]
     } else {
         split.val <- bun$bpt[[split.col]]
     }

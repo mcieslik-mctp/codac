@@ -26,7 +26,7 @@ config <- function() {
                             default=NA_character_,
                             help="additional options")
     )
-    parser = optparse::OptionParser("Rscript -e 'library(methods);codac::config()' [options] gtf_file mm2_index gmap_index out_file",
+    parser = optparse::OptionParser("Rscript -e 'library(methods);codac::config()' [options] gtf_file gmap_index mm2_index out_file",
       description=c("\n"),
       epilogue=c(
         "Written by Marcin Cieslik (mcieslik@med.umich.edu) ",
@@ -51,11 +51,10 @@ config <- function() {
         quit("no", 1)
     }
     gtf <- opt$args[1]
-    mm2_index <- opt$args[2]
-    gmap_index <- opt$args[3]
+    gmap.index <- opt$args[2]
+    mm2.index <- opt$args[3]
     out <- opt$args[4]
-    gmap.genome <- opt$options$gmap.genome
-    par <- makeParams(gtf, gmap.genome=gmap.genome, genome=gme,
+    par <- makeParams(gtf, gmap.index=gmap.index, mm2.index=mm2.index, genome=opt$options$genome,
                       config.file=opt$options$config,
                       preset=opt$options$preset,
                       lib.type=opt$options$libtype,
@@ -70,6 +69,9 @@ config <- function() {
 #' @export
 detect <- function() {
     option_list = list(
+      optparse::make_option(c("-j", "--cores"), type="integer",
+                            default=8L,
+                            help="set the number of cores"),
       optparse::make_option(c("-s", "--nostat"), action="store_true",
                             default=FALSE,
                             help="disable bundle stats"),
@@ -113,6 +115,8 @@ detect <- function() {
         write("required arguments missing missing.\n", stderr())
         quit("no", 1)
     }
+    ## cores
+    options(mc.cores=opt$options$cores)
     ## paths
     cfg.pth <- opt$args[1]
     inp.pth <- opt$args[2]
@@ -175,38 +179,38 @@ detect <- function() {
     }
 }
 
-#' @export
-assemble <- function() {
-    option_list = list(
-        optparse::make_option(c("-j", "--cores"), type="integer",
-                              default=8L,
-                              help="set the number of cores")
-    )
-    parser = optparse::OptionParser("Rscript -e 'library(methods);codac::assemble()' [options] cfg_file inp_file [out_dir]",
-      description=c("Assemble detected breakpoints\n"),
-      epilogue=c(
-        "Written by Marcin Cieslik (mcieslik@med.umich.edu) ",
-        "Michigan Center for Translational Pathology (c) 2017\n"),
-      option_list=option_list
-    )
-    opt = optparse::parse_args(parser, positional_arguments=TRUE)
-    ## input check
-    if (length(opt$args) < 2) {
-        optparse::print_help(parser)
-        write("required arguments missing missing.\n", stderr())
-        quit("no", 1)
-    }
-    cfg.pth <- opt$args[1]
-    inp.pth <- opt$args[2]
-    out.dir <- ifelse(is.na(opt$args[3]), getwd(), opt$args[3])
-    ann <- readRDS(cfg.pth)
-    bun <- readRDS(inp.pth)
-    name <- str_replace(basename(inp.pth), ".rds$", "")
-    options(mc.cores=opt$options$j)
-    asm <- assembleBundle(bun, ann)
-    out.pth <- file.path(out.dir, paste0(name, "-asm.rds"))
-    saveRDS(asm, out.pth)
-}
+## #' @export
+## neoantigen <- function() {
+##     option_list = list(
+##         optparse::make_option(c("-j", "--cores"), type="integer",
+##                               default=8L,
+##                               help="set the number of cores")
+##     )
+##     parser = optparse::OptionParser("Rscript -e 'library(methods);codac::assemble()' [options] cfg_file inp_file [out_dir]",
+##       description=c("Assemble detected breakpoints\n"),
+##       epilogue=c(
+##         "Written by Marcin Cieslik (mcieslik@med.umich.edu) ",
+##         "Michigan Center for Translational Pathology (c) 2017\n"),
+##       option_list=option_list
+##     )
+##     opt = optparse::parse_args(parser, positional_arguments=TRUE)
+##     ## input check
+##     if (length(opt$args) < 2) {
+##         optparse::print_help(parser)
+##         write("required arguments missing missing.\n", stderr())
+##         quit("no", 1)
+##     }
+##     cfg.pth <- opt$args[1]
+##     inp.pth <- opt$args[2]
+##     out.dir <- ifelse(is.na(opt$args[3]), getwd(), opt$args[3])
+##     ann <- readRDS(cfg.pth)
+##     bun <- readRDS(inp.pth)
+##     name <- str_replace(basename(inp.pth), ".rds$", "")
+##     options(mc.cores=opt$options$j)
+##     asm <- assembleBundle(bun, ann)
+##     out.pth <- file.path(out.dir, paste0(name, "-asm.rds"))
+##     saveRDS(asm, out.pth)
+## }
 
 #' @export
 report <- function() {

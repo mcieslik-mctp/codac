@@ -63,6 +63,8 @@ svFormat <- function(tbl) {
         inframe=ifelse(orf, "✓", ""),
         distance=dst,
         topology=topo,
+        mm2.valid=paste(ifelse(mm2.valid, "✓", "")),
+        gmap.valid=paste(ifelse(gmap.valid, "✓", "")),
         "cpm 5'"=format(round(cpm.5, 2), nsmall=2, scientific=999),
         "cpm 3'"=format(round(cpm.3, 2), nsmall=2, scientific=999),
         "read fraction 5'" = format(round(sum.jnc / (tot.jnc.5 + tot.sp.jnc.5), 2), nsmall=2, scientific=999),

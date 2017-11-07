@@ -52,7 +52,11 @@ assembleBreakpoints <- function(bun, ann) {
         sel.ctg <- .assembleBreakpoint(sel.bun, ann)
         return(sel.ctg)
     }))
-    ctg[,contig_id:=paste0(.GRP, contig_id), by=BPT.KEY]
+    if (nrow(ctg)>0) {
+        ctg[,contig_id:=paste0(.GRP, contig_id), by=BPT.KEY]
+    } else {
+        ctg <- cbind(bun$bpt[0,..BPT.KEY],  CTG.EMPTY)
+    }
     bun$ctg <- ctg
     return(bun)
 }

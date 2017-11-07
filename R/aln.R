@@ -68,8 +68,8 @@ BAM.EMPTY.MINIMAP2 <- data.table(
     if (nrow(ctg)>0) {
         gfn <- .writeFastas(ctg)
         bamFile <- paste0(gfn, ".m2")
-        OPT <- sprintf("-t %s -a %s -x splice", getOption("mc.cores"), "hg38.rna.mmi")
-        PIPE <- sprintf("%s 2> /dev/null | samtools view -F256 -b > %s", gfn, bamFile)
+        OPT <- sprintf("-t %s -a -x splice %s", getOption("mc.cores"), ann$par$mm2.index)
+        PIPE <- sprintf("%s 2> /tmp/mm2.error | samtools view -F256 -b > %s", gfn, bamFile)
         err <- system2("minimap2", c(OPT, PIPE), stdout=TRUE)
         blanks <- list(
             NM=NA_integer_,ms=NA_integer_,AS=NA_integer_,
@@ -99,18 +99,24 @@ BAM.EMPTY.MINIMAP2 <- data.table(
 }
 
 .positionChains <- function(aln) {
-    ## compute cliping
-    clip.l <- as.integer(str_match(aln$cigar, "^([0-9]+)[SH]")[,2])
-    clip.l[!is.na(aln$cigar) & is.na(clip.l)] <- 0L
-    clip.r <- as.integer(str_match(aln$cigar, "([0-9]+)[SH]$")[,2])
-    clip.r[!is.na(aln$cigar) & is.na(clip.r)] <- 0L
-    ## update alignment
-    aln[,n.seg:=.N, by=contig_id]
-    aln[,aligned_bases:=cigarWidthAlongQuerySpace(cigar, after.soft.clipping = TRUE)]
-    aln[,first_base_r:=pos]
-    aln[,first_base_q:=ifelse(aln$strand=="+", clip.l+1L, clip.r+1L)]
-    aln[,last_base_r:=first_base_r + cigarWidthAlongReferenceSpace(cigar)]
-    aln[,last_base_q:=first_base_q + aligned_bases]
+    if (nrow(aln)>0) {
+        ## compute cliping
+        clip.l <- as.integer(str_match(aln$cigar, "^([0-9]+)[SH]")[,2])
+        clip.l[!is.na(aln$cigar) & is.na(clip.l)] <- 0L
+        clip.r <- as.integer(str_match(aln$cigar, "([0-9]+)[SH]$")[,2])
+        clip.r[!is.na(aln$cigar) & is.na(clip.r)] <- 0L
+        ## update alignment
+        aln[,n.seg:=.N, by=contig_id]
+        aln[,aligned_bases:=cigarWidthAlongQuerySpace(cigar, after.soft.clipping = TRUE)]
+        aln[,first_base_r:=pos]
+        aln[,first_base_q:=ifelse(aln$strand=="+", clip.l+1L, clip.r+1L)]
+        aln[,last_base_r:=first_base_r + cigarWidthAlongReferenceSpace(cigar)]
+        aln[,last_base_q:=first_base_q + aligned_bases]
+    } else {
+        aln[,":="(n.seg=integer(), aligned_bases=integer(),
+                  first_base_r=integer(), first_base_q=integer(),
+                  last_base_r=integer(), last_base_q=integer())]
+    }
     return(aln)
 }
 

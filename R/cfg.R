@@ -32,10 +32,10 @@ makeParams <- function(gtf.fn, gmap.index, mm2.index, genome="hg38", config.file
     pres$read.length <- str_split(preset, "\\.")[[1]][1]
     ## genome parameters
     par38 <- list(
-      gme = "hg38",
       gtf.fn = gtf.fn,
       gmap.index = gmap.index,
       mm2.index = mm2.index,
+      gme = "hg38",
       cut.fn = system.file("extdata", sprintf("qc-cutoffs-%s.conf", pres$lib.type), package="codac"),
       goi.fn = system.file("extdata", "hg38.genes-of-interest.txt", package="codac"),
       loi.fn = system.file("extdata", "hg38.loci-of-interest.txt", package="codac"),
