@@ -45,7 +45,7 @@ BAM.EMPTY.MINIMAP2 <- data.table(
     if (nrow(ctg)>0) {
         gfn <- .writeFastas(ctg)
         bamFile <- paste0(gfn, ".gmap")
-        OPT <- sprintf("-f samse -n0 -D %s -d %s -x %s -K %s",
+        OPT <- sprintf("-f samse -n0 -D %s -d %s -x %s -K %d",
                        dirname(ann$par$gmap.index), basename(ann$par$gmap.index),
                        ann$par$asm.gmap.minchi, ann$par$asm.gmap.maxint)
         PIPE <- sprintf("%s 2> /dev/null | samtools view -b > %s", gfn, bamFile)
@@ -69,7 +69,7 @@ BAM.EMPTY.MINIMAP2 <- data.table(
         gfn <- .writeFastas(ctg)
         bamFile <- paste0(gfn, ".m2")
         OPT <- sprintf("-t %s -a -x splice %s", getOption("mc.cores"), ann$par$mm2.index)
-        PIPE <- sprintf("%s 2> /tmp/mm2.error | samtools view -F256 -b > %s", gfn, bamFile)
+        PIPE <- sprintf("%s 2> /dev/null | samtools view -F256 -b > %s", gfn, bamFile)
         err <- system2("minimap2", c(OPT, PIPE), stdout=TRUE)
         blanks <- list(
             NM=NA_integer_,ms=NA_integer_,AS=NA_integer_,
@@ -122,8 +122,8 @@ BAM.EMPTY.MINIMAP2 <- data.table(
 
 #' @export
 alignBreakpoints <- function(bun, ann) {
-    aln.mm2 <-.alignWrapper(.runMinimap2, bun$ctg, ann)
-    aln.gmap <-.alignWrapper(.runGmap, bun$ctg, ann)
+    aln.mm2 <- .alignWrapper(.runMinimap2, bun$ctg, ann)
+    aln.gmap <- .alignWrapper(.runGmap, bun$ctg, ann)
     aln.mm2 <- .positionChains(aln.mm2)
     aln.gmap <- .positionChains(aln.gmap)
     bun$aln.mm2 <- aln.mm2

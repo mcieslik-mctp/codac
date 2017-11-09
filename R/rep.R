@@ -71,7 +71,7 @@
     bpt[, tot.jnc:=NA_integer_]
     bpt[, tot.jnc:=sum(sum.jnc * (l1=="spn")), by=CHM.KEY]
     ## order and filter breakpoints
-    bpt <- bpt[order(orf, d2a, l1=="spn", sum.jnc, decreasing=TRUE)]
+    bpt <- bpt[order((gmap.valid | mm2.valid), orf, d2a, l1=="spn", sum.jnc, decreasing=TRUE)]
     if (nrow(bpt) > 0) {
         bpt[, first:=(1:.N), by=CHM.KEY]
         if (ann$par$only.spn.bpt) {
