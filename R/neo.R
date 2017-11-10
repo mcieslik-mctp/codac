@@ -1,4 +1,4 @@
-.extractChimeric <- function(sv.asm, ann) {
+.extractChimeric <- function(sv.sew, ann) {
     ctg.hq <- sv.asm$ctg[ctg.cov > ann$par$asm.ctg.cov*3 & ctg.len > ann$par$asm.ctg.len*2]
     setkey(ctg.hq, sv.chain, contig_id)
     chm.hq <- sv.asm$chm[(x.rna.len.3 > -1 & x.rna.len.5 == -1) & x.prot.pos.3 > 1]

@@ -259,19 +259,18 @@ ASM.EMPTY <- list(
     return(ctgs)
 }
 
-.stitchContigs <- function(ctgs, ann) {
-    ## stitch
+.sewContigs <- function(ctgs, ann) {
     lgt <- .lgt(ann)
     txs <- .filterContigTranscripts(ctgs, lgt)
     alns <- .alignContigsToTranscripts(ctgs, txs, ann)
     chms <- .assembleChimeras(ctgs, alns, txs, ann)
     fuss <- .assembleFusions(ctgs, alns, chms, txs, ann)
-    stitch <- list(ctg=ctgs, aln=alns, chm=chms, fus=fuss)
-    return(stitch)
+    sew <- list(ctg=ctgs, aln=alns, chm=chms, fus=fuss)
+    return(sew)
 }
 
 #' @export
-stitchBreakpoints <- function(bun, ann) {
+sewBreakpoints <- function(bun, ann) {
     ## assemble
     chain.type <- paste0(bun$type, ".chain")
     buns <- splitBundle(bun, chain.type)
@@ -288,16 +287,16 @@ stitchBreakpoints <- function(bun, ann) {
     ctgs[,contig_id:=paste0(sv.chain, contig_id)]
     ctgs <- .realignContigs(ctgs, ann)
     ctgss <- split(ctgs, ctgs$sv.chain)
-    ## stitch
-    stitches <- mclapply(names(ctgss), function(chain) {
+    ## sew
+    sews <- mclapply(names(ctgss), function(chain) {
         ctgs <- ctgss[[chain]]
-        stitch <- .stitchContigs(ctgs, ann)
-        stitch <- lapply(stitch, function(tbl) tbl[,(chain.type):=as.integer(chain)])
-        return(stitch)
+        sew <- .sewContigs(ctgs, ann)
+        sew <- lapply(sew, function(tbl) tbl[,(chain.type):=as.integer(chain)])
+        return(sew)
     })
-    if (length(stitches)>0) {
+    if (length(sews)>0) {
         nasm <- c("ctg", "aln", "chm", "fus")
-        asm <- lapply(nasm, function(x) rbindlist(lapply(stitches, "[[", x)))
+        asm <- lapply(nasm, function(x) rbindlist(lapply(sews, "[[", x)))
         names(asm) <- nasm
     } else {
         asm <- ASM.EMPTY

@@ -179,38 +179,38 @@ detect <- function() {
     }
 }
 
-## #' @export
-## neoantigen <- function() {
-##     option_list = list(
-##         optparse::make_option(c("-j", "--cores"), type="integer",
-##                               default=8L,
-##                               help="set the number of cores")
-##     )
-##     parser = optparse::OptionParser("Rscript -e 'library(methods);codac::assemble()' [options] cfg_file inp_file [out_dir]",
-##       description=c("Assemble detected breakpoints\n"),
-##       epilogue=c(
-##         "Written by Marcin Cieslik (mcieslik@med.umich.edu) ",
-##         "Michigan Center for Translational Pathology (c) 2017\n"),
-##       option_list=option_list
-##     )
-##     opt = optparse::parse_args(parser, positional_arguments=TRUE)
-##     ## input check
-##     if (length(opt$args) < 2) {
-##         optparse::print_help(parser)
-##         write("required arguments missing missing.\n", stderr())
-##         quit("no", 1)
-##     }
-##     cfg.pth <- opt$args[1]
-##     inp.pth <- opt$args[2]
-##     out.dir <- ifelse(is.na(opt$args[3]), getwd(), opt$args[3])
-##     ann <- readRDS(cfg.pth)
-##     bun <- readRDS(inp.pth)
-##     name <- str_replace(basename(inp.pth), ".rds$", "")
-##     options(mc.cores=opt$options$j)
-##     asm <- assembleBundle(bun, ann)
-##     out.pth <- file.path(out.dir, paste0(name, "-asm.rds"))
-##     saveRDS(asm, out.pth)
-## }
+#' @export
+sew <- function() {
+    option_list = list(
+        optparse::make_option(c("-j", "--cores"), type="integer",
+                              default=8L,
+                              help="set the number of cores")
+    )
+    parser = optparse::OptionParser("Rscript -e 'library(methods);codac::assemble()' [options] cfg_file inp_file [out_dir]",
+      description=c("Assemble detected breakpoints\n"),
+      epilogue=c(
+        "Written by Marcin Cieslik (mcieslik@med.umich.edu) ",
+        "Michigan Center for Translational Pathology (c) 2017\n"),
+      option_list=option_list
+    )
+    opt = optparse::parse_args(parser, positional_arguments=TRUE)
+    ## input check
+    if (length(opt$args) < 2) {
+        optparse::print_help(parser)
+        write("required arguments missing missing.\n", stderr())
+        quit("no", 1)
+    }
+    cfg.pth <- opt$args[1]
+    inp.pth <- opt$args[2]
+    out.dir <- ifelse(is.na(opt$args[3]), getwd(), opt$args[3])
+    ann <- readRDS(cfg.pth)
+    bun <- readRDS(inp.pth)
+    name <- str_replace(basename(inp.pth), ".rds$", "")
+    options(mc.cores=opt$options$cores)
+    sew <- sewBreakpoints(bun, ann)
+    out.pth <- file.path(out.dir, paste0(name, "-sew.rds"))
+    saveRDS(sew, out.pth)
+}
 
 #' @export
 report <- function() {
