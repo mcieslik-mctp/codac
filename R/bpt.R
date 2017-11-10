@@ -149,12 +149,13 @@
     bpt$locus_id.3.1 <- factor(locus_id.3.1, levels=ann$loci$locus_id)
     bpt$locus_id.5.2 <- factor(ifelse(need.flip, locus_id.3.2, locus_id.5.2), levels=ann$loci$locus_id)
     bpt$locus_id.3.2 <- factor(ifelse(need.flip, locus_id.5.2, locus_id.3.2), levels=ann$loci$locus_id)
-    ## number of spanning breakpoints
-    bpt[, ":="(sum.bpt=sum(type>-1)), by=CHM.KEY]
     return(bpt)
 }
 
 .topologyBreakpoints <- function(bpt, ann) {
+    ## number of spanning breakpoints
+    bpt[, ":="(sum.bpt=sum(type>-1)), by=CHM.KEY]
+    ## cytoband
     setkeyv(ann$locus.ovr, c("locus_id.5", "locus_id.3"))
     setkeyv(bpt, c("locus_id.5.1", "locus_id.3.1"))
     loc.5 <- ann$loci[as.integer(bpt$locus_id.5.1)]

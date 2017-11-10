@@ -72,8 +72,7 @@ svFormat <- function(tbl) {
         "recurrent(5';3')" = paste(unq.rec.5, unq.rec.3, sep=";"),
         "repetitive(5';3')" = paste(art.5, art.3, sep=";"),
         chain=sv.chain,
-        read.5=seq.5,
-        read.3=seq.3
+        contig=sapply(ctg.seq, as.character)
     )][order(chain)]
     return(rep)
 }

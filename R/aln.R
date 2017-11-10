@@ -86,7 +86,7 @@ BAM.EMPTY.MINIMAP2 <- data.table(
     return(bam)
 }
 
-.alignWrapper <- function(f, ctg, ann) {
+.alignWrapperBreakpoint <- function(f, ctg, ann) {
     bam <- f(ctg, ann)
     setkey(ctg, contig_id)
     setkey(bam, contig_id)
@@ -98,7 +98,7 @@ BAM.EMPTY.MINIMAP2 <- data.table(
     return(aln)
 }
 
-.positionChains <- function(aln) {
+.positionAlignments <- function(aln) {
     if (nrow(aln)>0) {
         ## compute cliping
         clip.l <- as.integer(str_match(aln$cigar, "^([0-9]+)[SH]")[,2])
@@ -122,10 +122,10 @@ BAM.EMPTY.MINIMAP2 <- data.table(
 
 #' @export
 alignBreakpoints <- function(bun, ann) {
-    aln.mm2 <- .alignWrapper(.runMinimap2, bun$ctg, ann)
-    aln.gmap <- .alignWrapper(.runGmap, bun$ctg, ann)
-    aln.mm2 <- .positionChains(aln.mm2)
-    aln.gmap <- .positionChains(aln.gmap)
+    aln.mm2 <- .alignWrapperBreakpoint(.runMinimap2, bun$ctg, ann)
+    aln.gmap <- .alignWrapperBreakpoint(.runGmap, bun$ctg, ann)
+    aln.mm2 <- .positionAlignments(aln.mm2)
+    aln.gmap <- .positionAlignments(aln.gmap)
     bun$aln.mm2 <- aln.mm2
     bun$aln.gmap <- aln.gmap
     return(bun)    

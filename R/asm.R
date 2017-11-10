@@ -57,6 +57,7 @@ assembleBreakpoints <- function(bun, ann) {
     } else {
         ctg <- cbind(bun$bpt[0,..BPT.KEY],  CTG.EMPTY)
     }
+    setkeyv(ctg, BPT.KEY)
     bun$ctg <- ctg
     return(bun)
 }
