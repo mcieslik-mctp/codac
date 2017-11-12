@@ -15,7 +15,7 @@ ASM.EMPTY <- list(
     alns <- data.table(expand.grid(contig_id=ctgs$contig_id, transcript_id=txs$transcript_id, stringsAsFactors=FALSE))
     setkey(alns, contig_id)
     setkey(ctgs, contig_id)
-    alns <- alns[ctgs]
+    alns <- alns[ctgs,allow.cartesian=TRUE]
     setkey(alns, transcript_id)
     setkey(txs, transcript_id)
     alns <- alns[txs, nomatch=0]

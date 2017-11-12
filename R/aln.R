@@ -29,9 +29,13 @@ BAM.EMPTY.MINIMAP2 <- data.table(
     tbl.q <- as.data.table(bam[!(names(bam) %in% c("tag"))])
     tbl.q[,":="(rname=as.character(rname), strand=as.character(strand))]
     tbl.t <- as.data.table(bam$tag)
-    for (tag in names(blanks)) {
-        if (is.null(tbl.t[[tag]])) {
-            tbl.t[,eval(tag):=blanks[[tag]]]
+    if (nrow(tbl.t)==0) {
+        tbl.t <- as.data.table(blanks)
+    } else {
+        for (tag in names(blanks)) {
+            if (is.null(tbl.t[[tag]])) {
+                tbl.t[,eval(tag):=blanks[[tag]]]
+            }
         }
     }
     tbl.t <- tbl.t[,names(blanks),with=FALSE]
@@ -99,7 +103,7 @@ BAM.EMPTY.MINIMAP2 <- data.table(
 }
 
 .positionAlignments <- function(aln) {
-    if (nrow(aln)>0) {
+    if (any(!is.na(aln$cigar))) {
         ## compute cliping
         clip.l <- as.integer(str_match(aln$cigar, "^([0-9]+)[SH]")[,2])
         clip.l[!is.na(aln$cigar) & is.na(clip.l)] <- 0L
