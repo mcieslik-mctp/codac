@@ -59,7 +59,7 @@ svFormat <- function(tbl) {
         breakpoints=sum.bpt,
         spliced=ifelse(d2a, "✓", ""),
         HQ=ifelse(hq.bpt, "✓", ""),
-        HR=ifelse(hr.bpt, "✓", ""),
+        TS=ifelse(ts.warn, "✓", ""),
         inframe=ifelse(orf, "✓", ""),
         distance=dst,
         topology=topo,
@@ -72,7 +72,7 @@ svFormat <- function(tbl) {
         "recurrent(5';3')" = paste(unq.rec.5, unq.rec.3, sep=";"),
         "repetitive(5';3')" = paste(art.5, art.3, sep=";"),
         chain=sv.chain,
-        contig=sapply(ctg.seq, as.character)
+        contig=sapply(lapply(ctg.seq, as.character), "[", 1)
     )][order(chain)]
     return(rep)
 }
@@ -90,7 +90,6 @@ tsFormat <- function(tbl) {
         breakpoints=sum.bpt,
         spliced=ifelse(d2a, "✓", ""),
         HQ=ifelse(hq.bpt, "✓", ""),
-        HR=ifelse(hr.bpt, "✓", ""),
         inframe=ifelse(orf, "✓", ""),
         distance=dst,
         topology=topo,
@@ -106,18 +105,28 @@ tsFormat <- function(tbl) {
 }
 
 #' @export
-qcFormat <- function(stat, ann) {
+neoFormat <- function(tbl) {
+    rep <- tbl[,.(
+        gene.5=ifelse(!is.na(gene_name.5), gene_name.5, "-"),
+        gene.3=ifelse(!is.na(gene_name.5), gene_name.3, "-"),
+        rna_seq=sapply(lapply(x.rna.3, as.character), "[", 1),
+        start_codon=cds1,
+        protein_seq=sapply(lapply(x.prot.3, as.character), "[", 1),
+        start_chimeric=x.prot.pos.3,
+        contig_len=ctg.len,
+        contig_cov=ctg.cov,
+        contig_seq=sapply(lapply(ctg.seq, as.character), "[", 1),
+        inframe=inframe.3,
+        homology=homology
+    )]
+    return(rep)
+}
+
+#' @export
+qcFormat <- function(stat) {
     qc <- stat[sapply(stat, is.numeric)]
-    qc.tbl <- data.table(var=names(qc), val=round(unlist(qc), 2))
+    qc.tbl <- data.table(var=names(qc), val=round(unlist(qc), 4))
     setkey(qc.tbl, var)
-    setkey(ann$cutoffs, var)
-    qc.tbl <- ann$cutoffs[qc.tbl]
-    qc.tbl[,status:=
-                ifelse(val >= error.lo & val <= error.hi, "fail",
-                ifelse(val >= warn.lo  & val <=  warn.hi, "warn", "pass"))
-    ]
-    qc.tbl[is.na(status), status:="pass"]
-    qc.tbl <- qc.tbl[,.(var, val, status)]
     return(qc.tbl)
 }
 

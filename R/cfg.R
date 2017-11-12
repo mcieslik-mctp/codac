@@ -17,7 +17,7 @@ makeDirectory <- function(dir.fn) {
 
 #' @export
 makeParams <- function(gtf.fn, gmap.index, mm2.index, genome="hg38", config.file="built-in", preset="longread.balanced",
-                       stranded=TRUE, lib.type="poly", only.spn.bpt=TRUE, only.hx.bpt=TRUE, opts=list()) {
+                       stranded=TRUE, only.spn.bpt=TRUE, only.hx.bpt=TRUE, opts=list()) {
     ## presets
     if (config.file=="built-in") {
         config.file <- system.file("extdata", "presets.conf", package="codac")
@@ -26,7 +26,6 @@ makeParams <- function(gtf.fn, gmap.index, mm2.index, genome="hg38", config.file
     PRESETS <- lapply(tmp[,-1,with=FALSE], function(col){names(col) <- tmp$param; as.list(col)})
     pres <- PRESETS[[preset]]
     pres$stranded <- stranded
-    pres$lib.type <- lib.type
     pres$only.spn.bpt <- only.spn.bpt
     pres$only.hx.bpt <- only.hx.bpt
     pres$read.length <- str_split(preset, "\\.")[[1]][1]
@@ -36,7 +35,6 @@ makeParams <- function(gtf.fn, gmap.index, mm2.index, genome="hg38", config.file
       gmap.index = gmap.index,
       mm2.index = mm2.index,
       gme = "hg38",
-      cut.fn = system.file("extdata", sprintf("qc-cutoffs-%s.conf", pres$lib.type), package="codac"),
       goi.fn = system.file("extdata", "hg38.genes-of-interest.txt", package="codac"),
       loi.fn = system.file("extdata", "hg38.loci-of-interest.txt", package="codac"),
       gtb.fn = system.file("extdata", "hg38.genes-to-blacklist.txt", package="codac"),

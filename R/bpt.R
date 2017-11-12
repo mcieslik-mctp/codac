@@ -290,8 +290,8 @@
         unq.rec.3=1L
     ), by=.(chr.3, pos.3, str.3)]
     bpt[rec.3>1, unq.rec.3:=uniqueN(.SD), by=.(chr.3, pos.3, str.3), .SDcols=c("locus_id.5.1", "locus_id.3.2")]
-    unq <- ann$par$bpt.unq.rec
-    tmp <- bpt[(unq.rec.5 >= unq | unq.rec.3 >= unq), .(l1, chr.5, pos.5, str.5, chr.3, pos.3, str.3)]
+    rec <- ann$par$bpt.rec.ts
+    tmp <- bpt[(unq.rec.5 >= rec | unq.rec.3 >= rec), .(l1, chr.5, pos.5, str.5, chr.3, pos.3, str.3)]
     setkey(tmp, l1, chr.5, pos.5, str.5)
     setkey(bpt, l1, chr.5, pos.5, str.5)
     bpt[unique(tmp, by=key(tmp)), hr.bpt:=TRUE]

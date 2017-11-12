@@ -13,7 +13,7 @@
 #' @importFrom S4Vectors queryHits subjectHits
 #' @importFrom BSgenome getSeq
 #' @importFrom GenomicAlignments cigarWidthAlongQuerySpace cigarWidthAlongReferenceSpace
-#' @importFrom data.table data.table fread setnames setkey setkeyv copy as.data.table uniqueN rbindlist key melt dcast.data.table
+#' @importFrom data.table data.table fread setnames setkey setkeyv copy as.data.table uniqueN rbindlist key melt dcast.data.table fwrite
 NULL
 
 MAXINT <- 999999999L

@@ -275,13 +275,14 @@
     ## loci of interest
     tmp <- with(fread(par$loi.fn, showProgress=FALSE, header=FALSE), GRanges(V1, IRanges(V2, V3), name=V4))
     loi <- .fixRanges(tmp, core$seqi)
-    ## cutoffs
-    cutoffs <- fread(par$cut.fn)
-    misc <- list(artifacts = arts,
-         segdups = segs,
-         gtb = gtb,
-         loi = loi,
-         cutoffs = cutoffs)
+    ## misc
+    misc <- list(
+        artifacts = arts,
+        segdups = segs,
+        gtb = gtb,
+        loi = loi
+    )
+    return(misc)
 }
 
 #' @export

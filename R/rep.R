@@ -70,10 +70,11 @@
     bpt[, tot.enc:=sum(sum.jnc * (l1=="enc")), by=CHM.KEY]
     bpt[, tot.jnc:=NA_integer_]
     bpt[, tot.jnc:=sum(sum.jnc * (l1=="spn")), by=CHM.KEY]
+    bpt[, ts.warn:=(unq.rec.5 >= ann$par$bpt.rec.ts.warn | unq.rec.3 >= ann$par$bpt.rec.ts.warn)]
     ## ctg sequence
     setkeyv(bpt, BPT.KEY)
     setkeyv(bun$ctg, BPT.KEY)
-    bpt[bun$ctg, ctg.seq:=ctg.seq]
+    bpt[bun$ctg, ctg.seq:=list(ctg.seq)]
     ## order and filter breakpoints
     bpt <- bpt[order((gmap.valid | mm2.valid), orf, d2a, l1=="spn", sum.jnc, decreasing=TRUE)]
     if (nrow(bpt) > 0) {

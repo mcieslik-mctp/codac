@@ -39,6 +39,10 @@
 
 .lgt <- function(ann) {
     go <- ann$gene.ovr
+    setkey(go, gene_id)
+    ge <- as.data.table(mcols(ann$genes)[,c("gene_id", "gene_name")])
+    setkey(ge, gene_id)
+    go <- ge[go]
     gt <- data.table(as.data.frame(mcols(ann$transcripts)))
     setkey(go, gene_id)
     setkey(gt, gene_id)

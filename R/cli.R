@@ -26,7 +26,8 @@ config <- function() {
                             default=NA_character_,
                             help="additional options")
     )
-    parser = optparse::OptionParser("Rscript -e 'library(methods);codac::config()' [options] gtf_file gmap_index mm2_index out_file",
+    parser = optparse::OptionParser(
+      "Rscript -e 'library(methods);codac::config()' [options] gtf_file gmap_index mm2_index out_file",
       description=c("\n"),
       epilogue=c(
         "Written by Marcin Cieslik (mcieslik@med.umich.edu) ",
@@ -57,7 +58,6 @@ config <- function() {
     par <- makeParams(gtf, gmap.index=gmap.index, mm2.index=mm2.index, genome=opt$options$genome,
                       config.file=opt$options$config,
                       preset=opt$options$preset,
-                      lib.type=opt$options$libtype,
                       stranded=!opt$options$unstranded,
                       only.spn.bpt=!opt$options$keep.enc.bpt,
                       only.hx.bpt=!opt$options$keep.all.bpt,
@@ -100,7 +100,8 @@ detect <- function() {
                             default=FALSE,
                             help="set flag to store temporary (unfiltered) bundle")
     )
-    parser = optparse::OptionParser("Rscript -e 'library(methods);codac::detect()' [options] cfg_file inp_dir [out_dir]",
+    parser = optparse::OptionParser(
+      "Rscript -e 'library(methods);codac::detect()' [options] cfg_file inp_dir [out_dir]",
       description=c("\n"),
       epilogue=c(
         "Written by Marcin Cieslik (mcieslik@med.umich.edu) ",
@@ -180,13 +181,14 @@ detect <- function() {
 }
 
 #' @export
-sew <- function() {
+assemble <- function() {
     option_list = list(
         optparse::make_option(c("-j", "--cores"), type="integer",
                               default=8L,
                               help="set the number of cores")
     )
-    parser = optparse::OptionParser("Rscript -e 'library(methods);codac::assemble()' [options] cfg_file inp_file [out_dir]",
+    parser = optparse::OptionParser(
+      "Rscript -e 'library(methods);codac::assemble()' [options] cfg_file inp_file [out_dir]",
       description=c("Assemble detected breakpoints\n"),
       epilogue=c(
         "Written by Marcin Cieslik (mcieslik@med.umich.edu) ",
@@ -208,7 +210,7 @@ sew <- function() {
     name <- str_replace(basename(inp.pth), ".rds$", "")
     options(mc.cores=opt$options$cores)
     sew <- sewBreakpoints(bun, ann)
-    out.pth <- file.path(out.dir, paste0(name, "-sew.rds"))
+    out.pth <- file.path(out.dir, paste0(name, "-asm.rds"))
     saveRDS(sew, out.pth)
 }
 
@@ -219,7 +221,8 @@ report <- function() {
                             default=FALSE,
                             help="include non-coding gene names in output")
     )
-    parser = optparse::OptionParser("Rscript -e 'library(methods);codac::report()' [options] cfg_file spl_file cts_file bun_file [out_dir]",
+    parser = optparse::OptionParser(
+      "Rscript -e 'library(methods);codac::report()' [options] cfg_file spl_file cts_file inp_file [out_dir]",
       description=c("Export \n"),
       epilogue=c(
         "Written by Marcin Cieslik (mcieslik@med.umich.edu) ",
@@ -258,7 +261,7 @@ report <- function() {
         write("Unknown bundle type.\n", stderr())
         quit("no", 1)
     }
-    write.csv(rep, file.path(out.dir, paste0(name, "-rep.csv")), row.names=FALSE, quote=FALSE)
+    fwrite(rep, file.path(out.dir, paste0(name, "-rep.csv")), row.names=FALSE, quote=FALSE)
 }
 
 #' @export
@@ -280,13 +283,11 @@ qc.report <- function() {
         quit("no", 1)
     }
     ##
-    cfg.pth <- opt$args[1]
-    stat.pth <- opt$args[2]
-    out.dir <- ifelse(is.na(opt$args[3]), getwd(), opt$args[3])
-    ann <- readRDS(cfg.pth)
+    stat.pth <- opt$args[1]
+    out.dir <- ifelse(is.na(opt$args[2]), getwd(), opt$args[2])
     stat <- readRDS(stat.pth)
-    stat.fmt <- qcFormat(stat, ann)
+    stat.fmt <- qcFormat(stat)
     name <- str_replace(basename(stat.pth), ".rds$", "")
     out.fn <- file.path(out.dir, paste0(name, "-rep.csv"))
-    write.csv(stat.fmt, out.fn, row.names=FALSE, quote=FALSE)
+    fwrite(stat.fmt, out.fn, row.names=FALSE, quote=FALSE)
 }
