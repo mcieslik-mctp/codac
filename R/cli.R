@@ -291,3 +291,35 @@ qc.report <- function() {
     out.fn <- file.path(out.dir, paste0(name, "-rep.csv"))
     fwrite(stat.fmt, out.fn, row.names=FALSE, quote=FALSE)
 }
+
+#' @export
+neo.report <- function() {
+    option_list = list(
+    )
+    parser = optparse::OptionParser("Rscript -e 'library(methods);codac::neo.report()' [options] cfg_file asm_file [out_dir]",
+      description=c("Export \n"),
+      epilogue=c(
+        "Written by Marcin Cieslik (mcieslik@med.umich.edu) ",
+        "Michigan Center for Translational Pathology (c) 2017\n"),
+      option_list=option_list
+      )
+    opt = optparse::parse_args(parser, positional_arguments=TRUE)
+    ## input check
+    if (length(opt$args) < 2) {
+        optparse::print_help(parser)
+        write("required arguments missing missing.\n", stderr())
+        quit("no", 1)
+    }
+    ##
+    cfg.pth <- opt$args[1]
+    asm.pth <- opt$args[2]
+    out.dir <- ifelse(is.na(opt$args[3]), getwd(), opt$args[3])
+    ##
+    ann <- readRDS(cfg.pth)
+    asm <- readRDS(asm.pth)
+    neo.rep <- neoReport(asm, ann)
+    neo.fmt <- neoFormat(neo.rep)
+    name <- str_replace(basename(asm.pth), ".rds$", "")
+    out.fn <- file.path(out.dir, paste0(name, "-neo.csv"))
+    fwrite(neo.fmt, out.fn, row.names=FALSE, quote=FALSE)
+}
