@@ -11,7 +11,7 @@ neoReport <- function(asm, ann) {
     chm.map.3 <- chm.3 <- ctg.map[chm.3, nomatch=0]
     setkey(chm.map.3, transcript_id, contig_id, sv.chain)
     setkey(asm$fus, transcript_id.5, contig_id, sv.chain)
-    chm.map.3 <- asm$fus[chm.map.3]
+    chm.map.3 <- asm$fus[chm.map.3, allow.cartesian=TRUE]
     setkey(chm.map.3, transcript_id.5)
     chm.map.3[lgt, ":="(gene_id.5=gene_id, gene_name.5=gene_name, tags=tags, cds1=cds1)]
     setkey(chm.map.3, transcript_id.3)

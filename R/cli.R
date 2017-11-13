@@ -10,9 +10,6 @@ config <- function() {
       optparse::make_option(c("-u", "--unstranded"), action="store_true",
                             default=FALSE,
                             help="set if library is unstranded"),
-      optparse::make_option(c("-l", "--libtype"), type="character",
-                            default="poly",
-                            help="library type: poly, capt, ribo"),
       optparse::make_option(c("-k", "--keep.enc.bpt"), action="store_true",
                             default=FALSE,
                             help="keep encompassing breakpoints"),
@@ -28,7 +25,7 @@ config <- function() {
     )
     parser = optparse::OptionParser(
       "Rscript -e 'library(methods);codac::config()' [options] gtf_file gmap_index mm2_index out_file",
-      description=c("\n"),
+      description=c("Create configuration file.\n"),
       epilogue=c(
         "Written by Marcin Cieslik (mcieslik@med.umich.edu) ",
         "Michigan Center for Translational Pathology (c) 2017\n"),
@@ -102,7 +99,7 @@ detect <- function() {
     )
     parser = optparse::OptionParser(
       "Rscript -e 'library(methods);codac::detect()' [options] cfg_file inp_dir [out_dir]",
-      description=c("\n"),
+      description=c("Detect all types of chimeric RNAs.\n"),
       epilogue=c(
         "Written by Marcin Cieslik (mcieslik@med.umich.edu) ",
         "Michigan Center for Translational Pathology (c) 2017\n"),
@@ -189,7 +186,7 @@ assemble <- function() {
     )
     parser = optparse::OptionParser(
       "Rscript -e 'library(methods);codac::assemble()' [options] cfg_file inp_file [out_dir]",
-      description=c("Assemble detected breakpoints\n"),
+      description=c("Assemble detected chimeric breakpoints.\n"),
       epilogue=c(
         "Written by Marcin Cieslik (mcieslik@med.umich.edu) ",
         "Michigan Center for Translational Pathology (c) 2017\n"),
@@ -223,7 +220,7 @@ report <- function() {
     )
     parser = optparse::OptionParser(
       "Rscript -e 'library(methods);codac::report()' [options] cfg_file spl_file cts_file inp_file [out_dir]",
-      description=c("Export \n"),
+      description=c("Produce chimeric RNA reports in CSV format.\n"),
       epilogue=c(
         "Written by Marcin Cieslik (mcieslik@med.umich.edu) ",
         "Michigan Center for Translational Pathology (c) 2017\n"),
@@ -269,7 +266,7 @@ qc.report <- function() {
     option_list = list(
     )
     parser = optparse::OptionParser("Rscript -e 'library(methods);codac::qc.report()' [options] stat_file [out_dir]",
-      description=c("Export \n"),
+      description=c("Produce QC report in CSV format.\n"),
       epilogue=c(
         "Written by Marcin Cieslik (mcieslik@med.umich.edu) ",
         "Michigan Center for Translational Pathology (c) 2017\n"),
@@ -297,7 +294,7 @@ neo.report <- function() {
     option_list = list(
     )
     parser = optparse::OptionParser("Rscript -e 'library(methods);codac::neo.report()' [options] cfg_file asm_file [out_dir]",
-      description=c("Export \n"),
+      description=c("Produce neoantigen report in CSV format.\n"),
       epilogue=c(
         "Written by Marcin Cieslik (mcieslik@med.umich.edu) ",
         "Michigan Center for Translational Pathology (c) 2017\n"),

@@ -15,10 +15,10 @@ ASM.EMPTY <- list(
     alns <- data.table(expand.grid(contig_id=ctgs$contig_id, transcript_id=txs$transcript_id, stringsAsFactors=FALSE))
     setkey(alns, contig_id)
     setkey(ctgs, contig_id)
-    alns <- alns[ctgs,allow.cartesian=TRUE]
+    alns <- alns[ctgs, allow.cartesian=TRUE]
     setkey(alns, transcript_id)
     setkey(txs, transcript_id)
-    alns <- alns[txs, nomatch=0]
+    alns <- alns[txs, nomatch=0, allow.cartesian=TRUE]
     vpa <- Vectorize(pairwiseAlignment, vectorize.args=c("pattern", "subject"))
     alns[, aln:=list(vpa(mrna, ctg.seq, type="local", gapOpening=MAXINT/2, gapExtension=MAXINT/2))]
     alns[, aln.len:=as.integer(lapply(aln, nchar))]
@@ -30,7 +30,7 @@ ASM.EMPTY <- list(
 .assembleChimeras <- function(ctgs, alns, txs, ann) {
     setkey(ctgs, contig_id)
     setkey(alns, contig_id)
-    tmp <- ctgs[alns]
+    tmp <- ctgs[alns, allow.cartesian=TRUE]
     setkey(tmp, transcript_id)
     setkey(txs, transcript_id)
     inps <- tmp[txs, nomatch=0, allow.cartesian=TRUE]
@@ -101,13 +101,13 @@ ASM.EMPTY <- list(
 .assembleFusions <- function(ctgs, alns, chms, txs, ann) {
     setkey(chms, contig_id)
     setkey(ctgs, contig_id)
-    tbls <- ctgs[chms]
+    tbls <- ctgs[chms, allow.cartesian=TRUE]
     setkey(txs, transcript_id)
     setkey(tbls, transcript_id)
-    tbls <- txs[tbls]
+    tbls <- txs[tbls, allow.cartesian=TRUE]
     setkey(tbls, contig_id, transcript_id)
     setkey(alns, contig_id, transcript_id)
-    tbls <- alns[tbls]
+    tbls <- alns[tbls, allow.cartesian=TRUE]
     a5 <- tbls[x.rna.len.3 > -1] # mrna->ctg
     a3 <- tbls[x.rna.len.5 > -1] # ctg->mrna
     setkey(a5, contig_id)
