@@ -65,6 +65,7 @@
 
 .reportSV <- function(bun, spl, cts, ann, only.prot) {
     bpt <- copy(bun$bpt)
+    ctg <- copy(bun$ctg)
     ## total reads
     bpt[, tot.enc:=NA_integer_]
     bpt[, tot.enc:=sum(sum.jnc * (l1=="enc")), by=CHM.KEY]
@@ -72,9 +73,10 @@
     bpt[, tot.jnc:=sum(sum.jnc * (l1=="spn")), by=CHM.KEY]
     bpt[, ts.warn:=(unq.rec.5 >= ann$par$bpt.rec.ts.warn | unq.rec.3 >= ann$par$bpt.rec.ts.warn)]
     ## ctg sequence
+    ctg <- ctg[order(-ctg.len),.SD[1],by=BPT.KEY]
     setkeyv(bpt, BPT.KEY)
-    setkeyv(bun$ctg, BPT.KEY)
-    bpt[bun$ctg, ctg.seq:=list(ctg.seq)]
+    setkeyv(ctg, BPT.KEY)
+    bpt[ctg, ctg.seq:=list(ctg.seq)]
     ## order and filter breakpoints
     bpt <- bpt[order((gmap.valid | mm2.valid), orf, d2a, l1=="spn", sum.jnc, decreasing=TRUE)]
     if (nrow(bpt) > 0) {

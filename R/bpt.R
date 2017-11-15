@@ -228,6 +228,10 @@
           )
         )
         &
+        ( ## breakpoint topology and distance
+            (topo %in% c("inv", "tloc")) | (bp.dst > par$bpt.dst.spl)
+        )
+        &
         ( ## breakpoint quality
           (((art.5 == "nil" | d2a) & (unq.ovr.5 >= par$bpt.unq.ovr)) | (unq.ovr.5 >= par$bpt.unq.ovr * pen))
           &
@@ -313,12 +317,16 @@
     bpt[,l1:=ifelse(type>-1, "spn", "enc")]
     ## Level 2 (proximal, distal)
     bpt[,l2:=ifelse(
-         (
-             ## exceed proximal distance cutoff
-             (dst>"adj" & (bp.dst >= ann$par$bpt.dst.prox)) |
-             ## relaxed cutoff for inversions
-             (dst>"loc" & !(topo %in% c("dup", "del")))
-         ), "dist", "prox")]
+    (
+        ## inversion
+        ((topo == "inv") & (dst > "loc")) |
+        ## duplication
+        ((topo == "dup") & (dst > "adj")) |
+        ## deletion
+        ((topo == "del") & (dst > "adj")) |
+        ##
+        ((topo == "tloc"))
+    ), "dist", "prox")]
     ## Level 3
     bpt[,l3:=factor("nd", levels=c("nd", "sl", "bs", "ts", "sv"), ordered=TRUE)]
     return(bpt)
