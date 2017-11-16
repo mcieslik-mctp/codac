@@ -31,7 +31,7 @@ config <- function() {
         "Michigan Center for Translational Pathology (c) 2017\n"),
       option_list=option_list
     )
-    
+
     opt = optparse::parse_args(parser, positional_arguments=TRUE)
     ## numeric parameters
     if(!is.na(opt$options$opts)) {
@@ -105,7 +105,7 @@ detect <- function() {
         "Michigan Center for Translational Pathology (c) 2017\n"),
       option_list=option_list
     )
-    
+
     opt = optparse::parse_args(parser, positional_arguments=TRUE)
     ##
     if (length(opt$args) < 2) {
@@ -265,7 +265,7 @@ report <- function() {
 qc.report <- function() {
     option_list = list(
     )
-    parser = optparse::OptionParser("Rscript -e 'library(methods);codac::qc.report()' [options] stat_file [out_dir]",
+    parser = optparse::OptionParser("Rscript -e 'library(methods);codac::qc.report()' [options] cfg_file stat_file [out_dir]",
       description=c("Produce QC report in CSV format.\n"),
       epilogue=c(
         "Written by Marcin Cieslik (mcieslik@med.umich.edu) ",
@@ -274,14 +274,15 @@ qc.report <- function() {
       )
     opt = optparse::parse_args(parser, positional_arguments=TRUE)
     ## input check
-    if (length(opt$args) < 1) {
+    if (length(opt$args) < 2) {
         optparse::print_help(parser)
         write("required arguments missing missing.\n", stderr())
         quit("no", 1)
     }
     ##
-    stat.pth <- opt$args[1]
-    out.dir <- ifelse(is.na(opt$args[2]), getwd(), opt$args[2])
+    cfg.pth <- opt$args[1]
+    stat.pth <- opt$args[2]
+    out.dir <- ifelse(is.na(opt$args[3]), getwd(), opt$args[3])
     stat <- readRDS(stat.pth)
     stat.fmt <- qcFormat(stat)
     name <- str_replace(basename(stat.pth), ".rds$", "")
