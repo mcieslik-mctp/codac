@@ -119,60 +119,48 @@ detect <- function() {
     cfg.pth <- opt$args[1]
     inp.pth <- opt$args[2]
     out.dir <- ifelse(is.na(opt$args[3]), getwd(), opt$args[3])
+    run <- runDetect(inp.pth, cfg.pth)
+    #### output
     sid <- basename(inp.pth)
-    ## annotation / configuration
-    ann <- readRDS(cfg.pth)
-    if (packageVersion("codac")[,1:2] != ann$par$version[,1:2]) {
-        write("Configuration and program version mismatch.\n", stderr())
-        quit("no", 1)
-    }
-    ## create bundle / stats
-    beg.time <- Sys.time()
-    bun <- makeBundle(ann, inp.pth)
-    end.time <- Sys.time()
-    ## FULL
-    if (opt$options$full) {
-        saveRDS(bun, file.path(out.dir, paste0(sid, "-codac-full.rds")))
-    }
     ## STAT
     if (!opt$options$nostat) {
-        stat <- statBundle(bun, ann)
-        stat$log$beg.time <- beg.time
-        stat$log$end.time <- end.time
-        stat$log$gc <- gc()
-        saveRDS(stat, file.path(out.dir, paste0(sid, "-codac-stat.rds")))
+        saveRDS(run$stat, file.path(out.dir, paste0(sid, "-codac-stat.rds")))
+    }
+    ## FULL
+    if (opt$options$full) {
+        saveRDS(run$bun, file.path(out.dir, paste0(sid, "-codac-full.rds")))
     }
     ## SPL
     if (!opt$options$nospl) {
-        saveRDS(bun$spl, file.path(out.dir, paste0(sid, "-codac-spl.rds")))
+        saveRDS(run$spl, file.path(out.dir, paste0(sid, "-codac-spl.rds")))
     }
     ## CTS
     if (!opt$options$nocts) {
-        saveRDS(bun$cts, file.path(out.dir, paste0(sid, "-codac-cts.rds")))
+        saveRDS(run$cts, file.path(out.dir, paste0(sid, "-codac-cts.rds")))
+    }
+    ## SV
+    if (!opt$options$nosv) {
+        sv.bun <- svBundle(run$bun, run$ann)
+        if (!opt$options$noasm) {
+            sv.bun <- assembleBreakpoints(sv.bun, run$ann)
+            sv.bun <- alignBreakpoints(sv.bun, run$ann)
+            sv.bun <- validateBreakpoints(sv.bun, run$ann)
+        }
+        saveRDS(sv.bun, file.path(out.dir, paste0(sid, "-codac-sv.rds")))
     }
     ## BS
     if (!opt$options$nobs) {
-        bs.bun <- bsBundle(bun, ann)
+        bs.bun <- bsBundle(run$bun, run$ann)
         saveRDS(bs.bun, file.path(out.dir, paste0(sid, "-codac-bs.rds")))
     }
     ## SL
     if (!opt$options$nosl) {
-        sl.bun <- slBundle(bun, ann)
+        sl.bun <- slBundle(run$bun, run$ann)
         saveRDS(sl.bun, file.path(out.dir, paste0(sid, "-codac-sl.rds")))
-    }
-    ## SV
-    if (!opt$options$nosv) {
-        sv.bun <- svBundle(bun, ann)
-        if (!opt$options$noasm) {
-            sv.bun <- assembleBreakpoints(sv.bun, ann)
-            sv.bun <- alignBreakpoints(sv.bun, ann)
-            sv.bun <- validateBreakpoints(sv.bun, ann)
-        }
-        saveRDS(sv.bun, file.path(out.dir, paste0(sid, "-codac-sv.rds")))
     }
     ## TS
     if (!opt$options$nots) {
-        ts.bun <- tsBundle(bun, ann)
+        ts.bun <- tsBundle(run$bun, run$ann)
         saveRDS(ts.bun, file.path(out.dir, paste0(sid, "-codac-ts.rds")))
     }
 }

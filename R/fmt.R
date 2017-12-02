@@ -1,5 +1,5 @@
 #' @export
-bsFormat <- function(tbl) {
+bsFormat <- function(tbl, reorder=TRUE) {
     rep <- tbl[,.(
         gene.5=ifelse(gene_names.5.1!="",                 str_match(gene_names.5.1, "[^:]*")[,1],
                ifelse(gene_names.3.2!="", sprintf("(%s)", str_match(gene_names.3.2, "[^:]*")[,1]), cyt.5.1)),
@@ -17,12 +17,15 @@ bsFormat <- function(tbl) {
         "read fraction 3'" = format(round(sum.jnc / (tot.jnc.3 + tot.sp.jnc.3), 2), nsmall=2, scientific=999),
         "repetitive(5';3)'" = paste(art.5, art.3, sep=";"),
         chain=bs.chain
-    )][order(chain)]
+    )]
+    if (reorder) {
+        rep <- rep[order(chain)]
+    }
     return(rep)
 }
 
 #' @export
-slFormat <- function(tbl) {
+slFormat <- function(tbl, reorder=TRUE) {
     rep <- tbl[,.(
         gene.5=ifelse(gene_names.5.1!="",                 str_match(gene_names.5.1, "[^:]*")[,1],
                ifelse(gene_names.3.2!="", sprintf("(%s)", str_match(gene_names.3.2, "[^:]*")[,1]), cyt.5.1)),
@@ -41,12 +44,15 @@ slFormat <- function(tbl) {
         "cpm 3'"=format(round(cpm.3, 2), nsmall=2, scientific=999),
         "repetitive(5';3')" = paste(art.5, art.3, sep=";"),
         chain=sl.chain
-    )][order(chain)]
+    )]
+    if (reorder) {
+        rep <- rep[order(chain)]
+    }
     return(rep)
 }
 
 #' @export
-svFormat <- function(tbl) {
+svFormat <- function(tbl, reorder=TRUE) {
     rep <- tbl[,.(
         gene.5=ifelse(gene_names.5.1!="",                 str_match(gene_names.5.1, "[^:]*")[,1],
                ifelse(gene_names.3.2!="", sprintf("(%s)", str_match(gene_names.3.2, "[^:]*")[,1]), cyt.5.1)),
@@ -73,12 +79,15 @@ svFormat <- function(tbl) {
         "repetitive(5';3')" = paste(art.5, art.3, sep=";"),
         chain=sv.chain,
         contig=sapply(lapply(ctg.seq, as.character), "[", 1)
-    )][order(chain)]
+    )]
+    if (reorder) {
+        rep <- rep[order(chain)]
+    }
     return(rep)
 }
 
 #' @export
-tsFormat <- function(tbl) {
+tsFormat <- function(tbl, reorder=TRUE) {
     rep <- tbl[,.(
         gene.5=ifelse(gene_names.5.1!="",                 str_match(gene_names.5.1, "[^:]*")[,1],
                ifelse(gene_names.3.2!="", sprintf("(%s)", str_match(gene_names.3.2, "[^:]*")[,1]), cyt.5.1)),
@@ -100,7 +109,10 @@ tsFormat <- function(tbl) {
         "recurrent(5';3')" = paste(unq.rec.5, unq.rec.3, sep=";"),
         "repetitive(5';3')" = paste(art.5, art.3, sep=";"),
         chain=ts.chain
-    )][order(chain)]
+    )]
+    if (reorder) {
+        rep <- rep[order(chain)]
+    }
     return(rep)
 }
 

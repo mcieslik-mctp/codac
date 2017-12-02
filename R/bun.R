@@ -1,35 +1,21 @@
 #' @export
-makeBundle <- function(ann, pth) {
-    dir <- makeDirectory(pth)
-    spl <- readSplices(dir, ann)
-    cts <- readCounts(dir, ann)
-    jnc <- readJunctions(dir, ann)
-    bpt <- collapseBreakpoints(jnc, ann)
-    bun <- list(bpt=bpt, jnc=jnc, spl=spl, cts=cts, dir=dir, type="full")
+makeBundle <- function(bpt, jnc, type) {
+    bun <- list(bpt=bpt, jnc=jnc, type="full")
     return(bun)
 }
 
 #' @export
-statBundle <- function(bun, ann) {
-    aln.stat <- .alignment.stat(bun, ann)
-    bpt.stat <- .breakpoint.stat(bun, aln.stat$eff.frg)
-    loc.stat <- .locus.stat(bun, ann)
-    log.stat <- list(version=packageVersion("codac"), beg.time=NULL, end.time=NULL, gc=NULL)
-    bun.stat <- c(aln.stat, bpt.stat, loc.stat)
-    bun.stat$log <- log.stat
-    return(bun.stat)
-}
-
-#' @export
 filterBundle <- function(sel.bpt, bun, ann) {
-    ## get junctions
     setkeyv(sel.bpt, BPT.KEY)
-    setkeyv(bun$jnc, BPT.KEY)
-    sel.jnc <- bun$jnc[sel.bpt[, BPT.KEY, with=FALSE], nomatch=0]
-    setkeyv(bun$jnc, JNC.KEY)
-    setkeyv(sel.jnc, JNC.KEY)
-    ## output bundle
-    sel.bun <- list(bpt=sel.bpt, jnc=sel.jnc, spl=NULL, cts=NULL, dir=bun$dir, type=bun$type)
+    sel.bun <- lapply(bun, function(x) NULL)
+    ## preserve required
+    sel.bun$bpt <- sel.bpt
+    sel.bun$type <- bun$type
+    ## filter junctions, contigs, and alignments ...
+    for (key in setdiff(names(bun), c("type", "bpt"))) {
+        setkeyv(bun[[key]], BPT.KEY)
+        sel.bun[[key]] <- bun[[key]][sel.bpt[, BPT.KEY, with=FALSE], nomatch=0]
+    }
     return(sel.bun)
 }
 
@@ -46,17 +32,26 @@ splitBundle <- function(bun, split.col=NULL) {
 }
 
 #' @export
-importBundles <- function(smp.pth, all.sfx=c("bs", "sl", "sv", "ts", "sv-asm")) {
-    all.sfx <- c("spl", "cts", "stat", all.sfx)
-    rds.fns <- list.files(smp.pth, "*.rds", full.names=TRUE)
-    rds.pfx <- str_match(basename(rds.fns), "(.*)-codac")[,2]
-    rds.fns.split <- split(rds.fns, rds.pfx)
-    buns <- lapply(rds.fns.split, function(fns) {
-        sfx <- str_match(basename(fns), "-codac-([^.]*)")[,2]
-        names(fns) <- sfx
-        names(all.sfx) <- all.sfx
-        res <- lapply(all.sfx, function(sfx) if (is.na(fns[sfx])) NULL else readRDS(fns[sfx]))
-        return(res)
+mergeBundles <- function(buns) {
+    mrg.bun <- lapply(buns[[1]], function(x) NULL)
+    ## preserve type
+    mrg.bun$type <- buns[[1]]$type
+    ## merge breakpoints, junctions, contigs, and alignments
+    for (key in setdiff(names(mrg.bun), c("type"))) {
+            mrg.key <- rbindlist(lapply(buns, "[[", key))
+            setkeyv(mrg.key, BPT.KEY)
+            mrg.bun[[key]] <- mrg.key
+    }
+    return(mrg.bun)
+}
+
+#' @export
+importBundles <- function(run.pth, bun.sfx=c("bs", "sl", "sv", "ts")) {
+    rds.fns <- list.files(run.pth, "*.rds", full.names=TRUE)
+    names(rds.fns) <- str_match(basename(rds.fns), "-codac-([^.]*)")[,2]
+    buns <- lapply(all.sfx, function(sfx) {
+        tryCatch(readRDS(rds.fns[sfx]), warning=function(w) NULL)
     })
+    names(buns) <- all.sfx
     return(buns)
 }

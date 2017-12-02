@@ -289,6 +289,6 @@ readJunctions <- function(dir, ann, debug=FALSE) {
     jnc <- .orientJunctions(jnc, ann, debug)
     jnc <- .defineHQjunctions(jnc, ann)
     jnc$sid <- factor(dir$sid)
-    setkeyv(jnc, JNC.KEY)
+    setkeyv(jnc, BPT.KEY)
     return(jnc)
 }

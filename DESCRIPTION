@@ -2,7 +2,7 @@ Package: codac
 Title: Comprehensive Detection and Analysis of Chimeras
 URL: https://github.com/mctp/codac
 BugReports: https://github.com/mctp/codac/issues
-Version: 3.4.1
+Version: 3.4.3
 Authors@R: person("Marcin", "Cieslik", email = "marcin.cieslik@gmail.com", role = c("aut", "cre"))
 Description: 
 Depends:

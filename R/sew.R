@@ -277,9 +277,9 @@ sewBreakpoints <- function(bun, ann) {
     ctgs <- rbindlist(mclapply(buns, function(bun) {
         ctg <- .runInchworm(bun$bpt, bun$jnc, ann)
         if (nrow(ctg)>0) {
-            ctg <- cbind(bun$bpt[1,"sv.chain"], ctg)
+            ctg <- cbind(bun$bpt[1,..chain.type], ctg)
         } else {
-            ctg <- cbind(bun$bpt[0,"sv.chain"], ctg)
+            ctg <- cbind(bun$bpt[0,..chain.type], ctg)
         }
         return(ctg)
     }))

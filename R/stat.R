@@ -42,13 +42,13 @@
     return(tbl)
 }
 
-.alignment.stat <- function(bun, ann) {
-    logs <- bun$dir$aln.log.fn
+.alignment.stat <- function(jnc, bpt, spl, dir, ann) {
+    logs <- dir$aln.log.fn
     nreads <- sum(sapply(logs, function(log) as.integer(str_match(readLines(log)[6], "\t(.*)")[,2])))
-    if (length(bun$dir$bw.fn)>0) {
-        cov.tbl <- .coverage.tbl(bun$dir$bw.fn, ann)
+    if (length(dir$bw.fn)>0) {
+        cov.tbl <- .coverage.tbl(dir$bw.fn, ann)
         cov <- cov.tbl[,.(avg.cov=mean(cov)),.(cut.cov, cut.len, npos)]
-        spl.rte <- .splice.rate(bun$dir$bw.fn, bun$dir$sj.fn, ann)
+        spl.rte <- .splice.rate(dir$bw.fn, dir$sj.fn, ann)
         lng.rte <- cov.tbl[cut.len>=8,sum(cov)]/1e6
     } else {
         cov.tbl <- NULL
@@ -58,18 +58,18 @@
     }
     ## alignment rate
     aln.rte <- mean(sapply(logs, function(log) as.numeric(str_sub(str_match(readLines(log)[10], "\t(.*)")[,2], end=-2))) / 100)
-    nreads.eff <- (nreads * aln.rte) + nrow(bun$jnc)
+    nreads.eff <- (nreads * aln.rte) + nrow(jnc)
     ## on-target rate
-    tgt.stat <- lapply(bun$dir$cts.sum.fn, function(fn) {x <- fread(fn); unname(unlist(x[1,2,with=FALSE] / sum(x[,2,with=FALSE])))})
-    names(tgt.stat) <- paste0(str_match(bun$dir$cts.sum.fn, "_nsort_(.*)-cts.cts.summary")[,2], ".rte")
+    tgt.stat <- lapply(dir$cts.sum.fn, function(fn) {x <- fread(fn); unname(unlist(x[1,2,with=FALSE] / sum(x[,2,with=FALSE])))})
+    names(tgt.stat) <- paste0(str_match(dir$cts.sum.fn, "_nsort_(.*)-cts.cts.summary")[,2], ".rte")
     aln.stat <- c(
         list(
             sum.frg = nreads,
             eff.frg = nreads.eff,
-            sum.jnc = nrow(bun$jnc),
-            sum.bpt = nrow(bun$bpt),
-            sum.spl = sum(bun$spl$locus.sjexp$nsfrag),
-            sum.nsj = sum(bun$spl$locus.sjexp$nsj),
+            sum.jnc = nrow(jnc),
+            sum.bpt = nrow(bpt),
+            sum.spl = sum(spl$locus.sjexp$nsfrag),
+            sum.nsj = sum(spl$locus.sjexp$nsj),
             cov = cov,
             aln.rte = aln.rte,
             spl.rte = spl.rte,
@@ -80,7 +80,7 @@
     return(aln.stat)
 }
 
-.breakpoint.stat <- function(bun, eff.frg) {
+.breakpoint.stat <- function(bpt, eff.frg) {
     ## dt selectors
     sl.sel <- quote(l3=="sl")
     ts.sel <- quote(l3=="ts")
@@ -98,37 +98,37 @@
     enc.dist.gtag.sel <- quote(l1=="enc" & l2=="dist" & ((str_sub(mot.5,7,8)=="GT") & (str_sub(mot.3,7,8)=="AG")))
     spn.prox.d2a.dup.sel <- quote(l1=="spn" & l2=="prox" & d2a & topo=="dup")
     ## artifact rate
-    art.rte <- bun$bpt[eval(art.sel), sum(sum.jnc)] / eff.frg
+    art.rte <- bpt[eval(art.sel), sum(sum.jnc)] / eff.frg
     ## duplication rate
-    dup.rte <- bun$bpt[eval(dup.sel), 1-sum(unq.sum.jnc)/sum(sum.jnc)]
+    dup.rte <- bpt[eval(dup.sel), 1-sum(unq.sum.jnc)/sum(sum.jnc)]
     ## ligation rate
-    spn.dist.rte <- bun$bpt[eval(spn.dist.nd.sel), sum(sum.jnc)] / bun$bpt[eval(dist.nd.sel), sum(sum.jnc)]
-    spn.prox.rte <- bun$bpt[eval(spn.prox.nd.sel), sum(sum.jnc)] / bun$bpt[eval(prox.nd.sel), sum(sum.jnc)]
-    spn.dist.lig <- bun$bpt[eval(dist.lig.nd.sel), sum(sum.jnc)]
-    spn.prox.lig <- bun$bpt[eval(prox.lig.nd.sel), sum(sum.jnc)]
+    spn.dist.rte <- bpt[eval(spn.dist.nd.sel), sum(sum.jnc)] / bpt[eval(dist.nd.sel), sum(sum.jnc)]
+    spn.prox.rte <- bpt[eval(spn.prox.nd.sel), sum(sum.jnc)] / bpt[eval(prox.nd.sel), sum(sum.jnc)]
+    spn.dist.lig <- bpt[eval(dist.lig.nd.sel), sum(sum.jnc)]
+    spn.prox.lig <- bpt[eval(prox.lig.nd.sel), sum(sum.jnc)]
     dist.lig <- spn.dist.lig / spn.dist.rte
     prox.lig <- spn.prox.lig / spn.prox.rte
     lig.rte <- (dist.lig+prox.lig) / eff.frg
     ## trans-splice log fold-change
-    spn.dist <- bun$bpt[eval(spn.dist.sel), sum(sum.jnc)]
-    enc.dist <- bun$bpt[eval(enc.dist.sel), sum(sum.jnc)]
-    spn.dist.gtag <- bun$bpt[eval(spn.dist.gtag.sel), sum(sum.jnc)]
-    enc.dist.gtag <- bun$bpt[eval(enc.dist.gtag.sel), sum(sum.jnc)]
+    spn.dist <- bpt[eval(spn.dist.sel), sum(sum.jnc)]
+    enc.dist <- bpt[eval(enc.dist.sel), sum(sum.jnc)]
+    spn.dist.gtag <- bpt[eval(spn.dist.gtag.sel), sum(sum.jnc)]
+    enc.dist.gtag <- bpt[eval(enc.dist.gtag.sel), sum(sum.jnc)]
     gtag.exp.rte <- (enc.dist.gtag/enc.dist)
     gtag.obs.rte <- (spn.dist.gtag/spn.dist)
     ts.lfc <- log2(gtag.obs.rte / gtag.exp.rte)
     ## trans-splice rate
     gtag.exp.cnt <- spn.dist * gtag.exp.rte
     gtag.obs.cnt <- spn.dist.gtag
-    ts.rte.lo <- (bun$bpt[eval(ts.sel), sum(sum.jnc)] / spn.dist.rte) / eff.frg
+    ts.rte.lo <- (bpt[eval(ts.sel), sum(sum.jnc)] / spn.dist.rte) / eff.frg
     ts.rte.hi <- (max(gtag.obs.cnt - gtag.exp.cnt, 0) / spn.dist.rte) / eff.frg
     ## back-splice rate
-    spn.prox.d2a <- bun$bpt[eval(spn.prox.d2a.dup.sel), sum(sum.jnc)]
+    spn.prox.d2a <- bpt[eval(spn.prox.d2a.dup.sel), sum(sum.jnc)]
     prox.d2a <- spn.prox.d2a / spn.prox.rte
     bs.rte <- prox.d2a / eff.frg
     ## stem-loop rate
-    sl.rte <- bun$bpt[eval(sl.sel), sum(sum.jnc)] / eff.frg
-    bpt.surv <- bun$bpt[,.(
+    sl.rte <- bpt[eval(sl.sel), sum(sum.jnc)] / eff.frg
+    bpt.surv <- bpt[,.(
         n=.N,
         hq.sum.jnc=mean(hq.sum.jnc), unq.sum.jnc=mean(unq.sum.jnc), sum.jnc=mean(sum.jnc),
         avg.err.5=mean(avg.err.5), avg.err.3=mean(avg.err.3),
@@ -151,7 +151,7 @@
     return(res)
 }
 
-.locus.stat <- function(bun, ann) {
+.locus.stat <- function(bpt, ann) {
     tmp.x <- data.table(
         locus_id=factor(),
         enc_dist_lig=integer(),
@@ -161,11 +161,11 @@
         spn_prox_lig=integer(),
         spn_prox_mot=integer()
     )
-    tmp.5 <- bun$bpt[,.(N=sum(sum.jnc)), by=.(locus_id=locus_id.5.1, l1, l2, l3, d2a)]
+    tmp.5 <- bpt[,.(N=sum(sum.jnc)), by=.(locus_id=locus_id.5.1, l1, l2, l3, d2a)]
     tmp.5 <- dcast.data.table(tmp.5, locus_id~l1+l2+ifelse(d2a, "mot", "lig"), value.var = "N", fun.aggregate = sum)
     tmp.5 <- rbind(tmp.5, tmp.x, fill=TRUE)[,colnames(tmp.x),with=FALSE]
     setnames(tmp.5, c("locus_id", paste0(colnames(tmp.5)[-1], ".5")))
-    tmp.3 <- bun$bpt[,.(N=sum(sum.jnc)), by=.(locus_id=locus_id.3.1, l1, l2, l3, d2a)]
+    tmp.3 <- bpt[,.(N=sum(sum.jnc)), by=.(locus_id=locus_id.3.1, l1, l2, l3, d2a)]
     tmp.3 <- dcast.data.table(tmp.3, locus_id~l1+l2+ifelse(d2a, "mot", "lig"), value.var = "N", fun.aggregate = sum)
     tmp.3 <- rbind(tmp.3, tmp.x, fill=TRUE)[,colnames(tmp.x),with=FALSE]
     setnames(tmp.3, c("locus_id", paste0(colnames(tmp.3)[-1], ".3")))
@@ -176,4 +176,16 @@
     tmp.53 <- .naTo0(tmp.53)
     setkey(tmp.53, locus_id)
     return(list(loc.surv=tmp.53))
+}
+
+#' @export
+makeStat <- function(jnc, bpt, spl, dir, ann) {
+    aln.stat <- .alignment.stat(jnc, bpt, spl, dir, ann)
+    bpt.stat <- .breakpoint.stat(bpt, aln.stat$eff.frg)
+    loc.stat <- .locus.stat(bpt, ann)
+    log.stat <- list(version=packageVersion("codac"), beg.time=NULL, end.time=NULL, gc=NULL)
+    stat <- c(aln.stat, bpt.stat, loc.stat)
+    stat$log <- log.stat
+    stat$dir <- dir
+    return(stat)
 }
