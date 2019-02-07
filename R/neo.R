@@ -8,7 +8,7 @@ neoReport <- function(asm, ann) {
     setkey(ctg.map, sv.chain, contig_id)
     chm.3 <- asm$chm[(x.rna.len.3 > -1 & x.rna.len.5 == -1) & x.prot.pos.3 > 1]
     setkey(chm.3, sv.chain, contig_id)
-    chm.map.3 <- chm.3 <- ctg.map[chm.3, nomatch=0]
+    chm.map.3 <- ctg.map[chm.3, nomatch=0]
     setkey(chm.map.3, transcript_id, contig_id, sv.chain)
     setkey(asm$fus, transcript_id.5, contig_id, sv.chain)
     chm.map.3 <- asm$fus[chm.map.3, allow.cartesian=TRUE]

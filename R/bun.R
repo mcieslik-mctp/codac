@@ -49,9 +49,9 @@ mergeBundles <- function(buns) {
 importBundles <- function(run.pth, bun.sfx=c("bs", "sl", "sv", "ts")) {
     rds.fns <- list.files(run.pth, "*.rds", full.names=TRUE)
     names(rds.fns) <- str_match(basename(rds.fns), "-codac-([^.]*)")[,2]
-    buns <- lapply(all.sfx, function(sfx) {
+    buns <- lapply(bun.sfx, function(sfx) {
         tryCatch(readRDS(rds.fns[sfx]), warning=function(w) NULL)
     })
-    names(buns) <- all.sfx
+    names(buns) <- bun.sfx
     return(buns)
 }

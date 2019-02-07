@@ -1,6 +1,6 @@
 readCounts <- function(dir, ann) {
     fn <- grep("_(gene|full)-", dir$cts.fn, value=TRUE)
-    tbl <- data.table::fread(sprintf("zcat %s", fn), skip=1, drop=c(2,3,4,5), col.names = c("gene_id", "length", "count"))
+    tbl <- data.table::fread(cmd=sprintf("zcat %s", fn), skip=1, drop=c(2,3,4,5), col.names = c("gene_id", "length", "count"))
     ## add locus_id
     setkey(tbl, gene_id)
     setkey(ann$gene.ovr, gene_id)

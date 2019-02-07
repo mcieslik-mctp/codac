@@ -12,7 +12,8 @@ ASM.EMPTY <- list(
 )
 
 .alignContigsToTranscripts <- function(ctgs, txs, ann) {
-    alns <- data.table(expand.grid(contig_id=ctgs$contig_id, transcript_id=txs$transcript_id, stringsAsFactors=FALSE))
+    alns <- data.table(expand.grid(contig_id=unique(ctgs$contig_id),
+                                   transcript_id=txs$transcript_id, stringsAsFactors=FALSE))
     setkey(alns, contig_id)
     setkey(ctgs, contig_id)
     alns <- alns[ctgs, allow.cartesian=TRUE]
